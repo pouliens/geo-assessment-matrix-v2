@@ -307,16 +307,8 @@ def get_complete_feature_data(geological_feature_name):
     if main_data is None:
         return None
     
-    # Create a dictionary with the main data
-    complete_data = {
-        'Geological_Feature': main_data['Geological_Feature'],
-        'Setting': main_data['Setting'],
-        'Process': main_data['Process'],
-        'Constraint_Type': main_data['Constraint_Type'],
-        'Dominant_Constraint': main_data['Dominant_Constraint'],
-        'Definition': main_data['Definition'],  # Will be overridden if found in constraints
-        'Comments': main_data['Comments']  # Will be overridden if found in constraints
-    }
+    # Create a dictionary with ALL the main data (preserve all columns)
+    complete_data = main_data.to_dict()
     
     # Try to get complete definition from geological constraints file
     if not geo_constraints_data.empty:
