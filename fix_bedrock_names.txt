@@ -1,0 +1,12 @@
+BEDROCK NAME FIXES NEEDED:
+
+In both reference-geological-constraints.csv and reference-engineering-constraints.csv:
+
+CHANGE FROM → CHANGE TO:
+Bedrock outcrop/subcrop (undifferentiated) → Bedrock outcrop (undifferentiated)
+Bedrock outcrop/subcrop; carbonate → Bedrock outcrop (carbonate)
+Bedrock outcrop/subcrop; sedimentary; clastic → Bedrock outcrop (sedimentary clastic)
+Bedrock outcrop/subcrop; igneous → Bedrock outcrop (igneous)
+Bedrock outcrop/subcrop; metamorphic → Bedrock outcrop (metamorphic)
+
+The names in geological_data.csv are correct and should be the master reference.

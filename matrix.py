@@ -25,15 +25,23 @@ st.set_page_config(
 # Data loading functions
 @st.cache_data
 def load_geological_data():
-    """Load main geological data from CSV file."""
-    try:
-        return pd.read_csv("geological_data.csv")
-    except FileNotFoundError:
-        st.error("geological_data.csv not found. Please ensure the data file is in the correct location.")
-        return pd.DataFrame()
-    except pd.errors.ParserError as e:
-        st.error(f"Error parsing CSV file: {e}")
-        return pd.DataFrame()
+    """Load main geological data from CSV file with encoding handling."""
+    encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+    
+    for encoding in encodings:
+        try:
+            return pd.read_csv("geological_data.csv", encoding=encoding)
+        except UnicodeDecodeError:
+            continue
+        except FileNotFoundError:
+            st.error("geological_data.csv not found. Please ensure the data file is in the correct location.")
+            return pd.DataFrame()
+        except pd.errors.ParserError as e:
+            st.error(f"Error parsing CSV file: {e}")
+            return pd.DataFrame()
+    
+    st.error("Could not decode geological_data.csv with any supported encoding.")
+    return pd.DataFrame()
 
 @st.cache_data
 def load_constraint_data():
@@ -142,7 +150,7 @@ st.markdown("""
     .constraint-pill {
         display: inline-block;
         padding: 0.2rem 0.6rem;
-        margin: 0.1rem;
+        margin: 0.2rem 0.1rem;
         border-radius: 15px;
         font-size: 0.8rem;
         font-weight: 500;
