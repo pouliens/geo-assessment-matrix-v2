@@ -22,8 +22,47 @@ def load_geological_data():
         st.error(f"Error parsing CSV file: {e}")
         return pd.DataFrame()
 
+@st.cache_data
+def load_constraint_data():
+    """Load both geological and engineering constraint data."""
+    try:
+        # Try different encodings to handle special characters
+        encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+        
+        geo_constraints = None
+        eng_constraints = None
+        
+        for encoding in encodings:
+            try:
+                geo_constraints = pd.read_csv("reference-geological-constraints.csv", encoding=encoding)
+                break
+            except UnicodeDecodeError:
+                continue
+        
+        for encoding in encodings:
+            try:
+                eng_constraints = pd.read_csv("reference-engineering-constraints.csv", encoding=encoding)
+                break
+            except UnicodeDecodeError:
+                continue
+        
+        if geo_constraints is None:
+            geo_constraints = pd.DataFrame()
+        if eng_constraints is None:
+            eng_constraints = pd.DataFrame()
+            
+        return geo_constraints, eng_constraints
+        
+    except FileNotFoundError as e:
+        st.error(f"Constraint files not found: {e}")
+        return pd.DataFrame(), pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error loading constraint CSV files: {e}")
+        return pd.DataFrame(), pd.DataFrame()
+
 # Load the data
 geological_data = load_geological_data()
+geo_constraints_data, eng_constraints_data = load_constraint_data()
 
 # Extract unique values for filters from the data
 if not geological_data.empty:
@@ -108,6 +147,56 @@ st.markdown("""
         border-radius: 20px;
         background-color: #f8f9fa;
         font-size: 0.9rem;
+    }
+    
+    .constraint-pill {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        margin: 0.1rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-align: center;
+    }
+    
+    .geo-constraint-pill {
+        background-color: #e3f2fd;
+        border: 1px solid #2196f3;
+        color: #1976d2;
+    }
+    
+    .eng-constraint-pill {
+        background-color: #fff3e0;
+        border: 1px solid #ff9800;
+        color: #f57c00;
+    }
+    
+    .constraints-container {
+        margin: 0.5rem 0;
+        line-height: 1.8;
+    }
+    
+    .section-container {
+        background-color: #f8f9fa;
+        border-left: 3px solid #1e4d5b;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border-radius: 0 5px 5px 0;
+    }
+    
+    .constraints-card {
+        background-color: #f8f9fa;
+        border-left: 3px solid #1e4d5b;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border-radius: 0 5px 5px 0;
+    }
+    
+    .constraint-subheading {
+        font-weight: bold;
+        margin: 1rem 0 0.5rem 0;
+        color: #1e4d5b;
+        font-size: 0.95rem;
     }
     
     /* Remove all paragraph margins globally */
@@ -256,6 +345,33 @@ def get_foundation_header_class(foundation_type):
     else:
         return "cables-header"
 
+def get_constraints_for_feature(feature_name, constraints_data):
+    """Extract constraints for a specific geological feature."""
+    if constraints_data.empty:
+        return []
+    
+    # Find the row for this geological feature using the first column (regardless of name)
+    first_col = constraints_data.columns[0]
+    feature_row = constraints_data[constraints_data[first_col] == feature_name]
+    if feature_row.empty:
+        return []
+    
+    constraints = []
+    # Get all columns after the first 4 columns (which are metadata)
+    constraint_columns = constraints_data.columns[4:]  # Skip first 4 columns
+    
+    for col in constraint_columns:
+        try:
+            if not pd.isna(feature_row[col].iloc[0]) and str(feature_row[col].iloc[0]).strip().lower() == 'x':
+                # Clean up column names by removing unwanted characters
+                clean_name = col.strip()
+                if clean_name and clean_name not in ['Unknown', 'Potentially unsuitable', 'Requires individual WTG siting investigation']:
+                    constraints.append(clean_name)
+        except (IndexError, KeyError):
+            continue
+    
+    return constraints
+
 # Header
 st.markdown("""
 <div class="main-header">
@@ -317,21 +433,89 @@ with col2:
     
     with col_c1:
         if feature_data_1 is not None:
-            st.markdown(f"**Setting:** {feature_data_1['Setting']}")
-            st.markdown(f"**Process:** {feature_data_1['Process']}")
-            st.markdown(f"**Constraint Type:** {feature_data_1['Constraint_Type']}")
-            st.markdown(f"**Dominant Constraint:** {feature_data_1['Dominant_Constraint']}")
+            st.markdown(f"""
+            <div class="section-container">
+                <p><strong>Setting:</strong> {feature_data_1['Setting']}</p>
+                <p><strong>Process:</strong> {feature_data_1['Process']}</p>
+                <p><strong>Constraint Type:</strong> {feature_data_1['Constraint_Type']}</p>
+                <p><strong>Dominant Constraint:</strong> {feature_data_1['Dominant_Constraint']}</p>
+            </div>
+            """, unsafe_allow_html=True)
         else:
-            st.markdown("**No data available for Feature 1**")
+            st.markdown('<div class="section-container"><p><strong>No data available for Feature 1</strong></p></div>', unsafe_allow_html=True)
     
     with col_c2:
         if feature_data_2 is not None:
-            st.markdown(f"**Setting:** {feature_data_2['Setting']}")
-            st.markdown(f"**Process:** {feature_data_2['Process']}")
-            st.markdown(f"**Constraint Type:** {feature_data_2['Constraint_Type']}")
-            st.markdown(f"**Dominant Constraint:** {feature_data_2['Dominant_Constraint']}")
+            st.markdown(f"""
+            <div class="section-container">
+                <p><strong>Setting:</strong> {feature_data_2['Setting']}</p>
+                <p><strong>Process:</strong> {feature_data_2['Process']}</p>
+                <p><strong>Constraint Type:</strong> {feature_data_2['Constraint_Type']}</p>
+                <p><strong>Dominant Constraint:</strong> {feature_data_2['Dominant_Constraint']}</p>
+            </div>
+            """, unsafe_allow_html=True)
         else:
-            st.markdown("**No data available for Feature 2**")
+            st.markdown('<div class="section-container"><p><strong>No data available for Feature 2</strong></p></div>', unsafe_allow_html=True)
+    
+    # Combined Constraints section
+    st.markdown(f'<div class="section-header">{create_tooltip("Constraints Analysis", "Geological and engineering constraints for both features")}</div>', 
+                unsafe_allow_html=True)
+    
+    col_cc1, col_cc2 = st.columns(2)
+    
+    with col_cc1:
+        # Get constraints for feature 1
+        geo_constraints_1 = get_constraints_for_feature(geological_feature_1, geo_constraints_data)
+        eng_constraints_1 = get_constraints_for_feature(geological_feature_1, eng_constraints_data)
+        
+        constraints_content = ""
+        
+        # Add geological constraints
+        constraints_content += '<div class="constraint-subheading">Geological Constraints</div>'
+        if geo_constraints_1:
+            geo_pills = ' '.join([f'<span class="constraint-pill geo-constraint-pill">{constraint}</span>' 
+                                for constraint in geo_constraints_1])
+            constraints_content += f'<div class="constraints-container">{geo_pills}</div>'
+        else:
+            constraints_content += '<p style="font-style: italic; color: #6c757d;">No geological constraints identified</p>'
+        
+        # Add engineering constraints
+        constraints_content += '<div class="constraint-subheading">Engineering Constraints</div>'
+        if eng_constraints_1:
+            eng_pills = ' '.join([f'<span class="constraint-pill eng-constraint-pill">{constraint}</span>' 
+                                for constraint in eng_constraints_1])
+            constraints_content += f'<div class="constraints-container">{eng_pills}</div>'
+        else:
+            constraints_content += '<p style="font-style: italic; color: #6c757d;">No engineering constraints identified</p>'
+        
+        st.markdown(f'<div class="constraints-card">{constraints_content}</div>', unsafe_allow_html=True)
+    
+    with col_cc2:
+        # Get constraints for feature 2
+        geo_constraints_2 = get_constraints_for_feature(geological_feature_2, geo_constraints_data)
+        eng_constraints_2 = get_constraints_for_feature(geological_feature_2, eng_constraints_data)
+        
+        constraints_content = ""
+        
+        # Add geological constraints
+        constraints_content += '<div class="constraint-subheading">Geological Constraints</div>'
+        if geo_constraints_2:
+            geo_pills = ' '.join([f'<span class="constraint-pill geo-constraint-pill">{constraint}</span>' 
+                                for constraint in geo_constraints_2])
+            constraints_content += f'<div class="constraints-container">{geo_pills}</div>'
+        else:
+            constraints_content += '<p style="font-style: italic; color: #6c757d;">No geological constraints identified</p>'
+        
+        # Add engineering constraints
+        constraints_content += '<div class="constraint-subheading">Engineering Constraints</div>'
+        if eng_constraints_2:
+            eng_pills = ' '.join([f'<span class="constraint-pill eng-constraint-pill">{constraint}</span>' 
+                                for constraint in eng_constraints_2])
+            constraints_content += f'<div class="constraints-container">{eng_pills}</div>'
+        else:
+            constraints_content += '<p style="font-style: italic; color: #6c757d;">No engineering constraints identified</p>'
+        
+        st.markdown(f'<div class="constraints-card">{constraints_content}</div>', unsafe_allow_html=True)
     
     # Foundation Assessment Comparison
     st.markdown(f'<div class="section-header">{create_tooltip("Foundation Assessment Comparison", "Constraint levels for all foundation types for both features")}</div>', 
@@ -341,19 +525,23 @@ with col2:
     
     with col_f1:
         if feature_data_1 is not None:
+            foundation_content = ""
             for foundation_type in FOUNDATION_TYPES:
                 assessment = get_assessment(feature_data_1, foundation_type)
-                st.markdown(f"**{foundation_type}:** {assessment}")
+                foundation_content += f"<p><strong>{foundation_type}:</strong> {assessment}</p>"
+            st.markdown(f'<div class="section-container">{foundation_content}</div>', unsafe_allow_html=True)
         else:
-            st.markdown("**No assessment data available**")
+            st.markdown('<div class="section-container"><p><strong>No assessment data available</strong></p></div>', unsafe_allow_html=True)
     
     with col_f2:
         if feature_data_2 is not None:
+            foundation_content = ""
             for foundation_type in FOUNDATION_TYPES:
                 assessment = get_assessment(feature_data_2, foundation_type)
-                st.markdown(f"**{foundation_type}:** {assessment}")
+                foundation_content += f"<p><strong>{foundation_type}:</strong> {assessment}</p>"
+            st.markdown(f'<div class="section-container">{foundation_content}</div>', unsafe_allow_html=True)
         else:
-            st.markdown("**No assessment data available**")
+            st.markdown('<div class="section-container"><p><strong>No assessment data available</strong></p></div>', unsafe_allow_html=True)
     
     # Definitions section
     st.markdown(f'<div class="section-header">{create_tooltip("Feature Definitions", "Scientific descriptions of both geological features")}</div>', 
@@ -365,13 +553,13 @@ with col2:
         if feature_data_1 is not None:
             definition_text = feature_data_1['Definition'] if pd.notna(feature_data_1['Definition']) else "No definition available"
             st.markdown(f"""
-            <div class="parameter-section">
+            <div class="section-container">
                 <p>{definition_text}</p>
             </div>
             """, unsafe_allow_html=True)
         else:
             st.markdown("""
-            <div class="parameter-section">
+            <div class="section-container">
                 <p>No definition available</p>
             </div>
             """, unsafe_allow_html=True)
@@ -380,13 +568,13 @@ with col2:
         if feature_data_2 is not None:
             definition_text = feature_data_2['Definition'] if pd.notna(feature_data_2['Definition']) else "No definition available"
             st.markdown(f"""
-            <div class="parameter-section">
+            <div class="section-container">
                 <p>{definition_text}</p>
             </div>
             """, unsafe_allow_html=True)
         else:
             st.markdown("""
-            <div class="parameter-section">
+            <div class="section-container">
                 <p>No definition available</p>
             </div>
             """, unsafe_allow_html=True)
