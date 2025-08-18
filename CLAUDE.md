@@ -2,170 +2,237 @@
 
 ## Project Overview
 
-The EGDI Geo-Assessment Matrix is a decision support tool for offshore windfarm development that helps engineers and developers assess geological constraints and compare foundation types. The tool enables users to explore geological features and their engineering implications for optimal site selection and foundation design.
+The EGDI Geo-Assessment Matrix is a **simplified feature comparison tool** for offshore windfarm development that enables engineers and developers to compare two geological features side-by-side. The tool provides comprehensive geological assessments, constraints analysis, and foundation recommendations to support optimal site selection and foundation design.
 
-This tool was developed to simplify windfarm foundation selection by providing:
-- Real geological assessment data from comprehensive research
-- Side-by-side comparison of foundation types
-- Intelligent filtering of geological features
-- Professional engineering guidance for offshore wind development
+## Key Features
+
+- **Feature-to-Feature Comparison**: Select and compare any two geological features from 86+ available options
+- **Comprehensive Data Display**: Geological characteristics, constraints analysis, foundation assessments, definitions, and engineering comments
+- **Interactive Constraint Pills**: Visual representation of geological and engineering constraints with color-coded categories
+- **Professional UI**: Clean, consistent interface with equal-height cards and left-border styling for easy scanning
+- **Complete Definitions**: Full scientific descriptions with proper citations from research literature
+- **Foundation Assessment**: Constraint levels for all four foundation types (Piles, Suction Caisson, GBS, Cables)
 
 ## Technology Stack
 
 - **Frontend**: Streamlit (Python web framework)
-- **Data Processing**: Pandas for CSV data manipulation
-- **Data Source**: Geological assessment matrix CSV with 86+ geological features
-- **Styling**: Custom CSS for professional UI/UX
+- **Data Processing**: Pandas for CSV data manipulation and multi-source data integration
+- **Styling**: Custom CSS with responsive design and professional styling
+- **Data Sources**: Multi-file CSV architecture for comprehensive geological data
 - **Deployment**: Local development server (easily deployable to cloud platforms)
 
 ## Architecture
 
+### File Structure
 ```
 geo-assessment-matrix-v2/
-├── matrix.py              # Main Streamlit application
-├── geological_data.csv    # Geological assessment database
-├── CLAUDE.md             # This documentation file
-└── README.md             # Basic project information
+├── matrix.py                                  # Main Streamlit application (564 lines, cleaned & refactored)
+├── geological_data.csv                        # Main geological features database (86 features)
+├── reference-geological-constraints.csv       # Complete definitions and geological constraints
+├── reference-engineering-constraints.csv     # Engineering constraints for each feature
+├── CLAUDE.md                                 # This comprehensive documentation
+├── README.md                                 # Basic project information
+└── T5.2a _FINAL_Geo-Assessment_Matrix_D5.4_2025_v2.xlsx  # Original Excel source
 ```
 
-### Data Structure
+### Data Architecture
 
-The `geological_data.csv` contains 86 geological features with the following key attributes:
-- **Geological_Feature**: Name of the geological feature (e.g., "Peat (organic-rich)", "Glacifluvial delta")
-- **Setting**: Geological environment (Sediments, Glacial, Marine, Fluvial, Coastal, Solid Earth, etc.)
-- **Process**: Geological process (Lithology, Relief, Structure, Geohazard, etc.)
-- **Constraint_Type**: Primary constraint category
-- **Definition**: Scientific description of the geological feature
-- **Foundation Assessments**: Constraint levels for each foundation type:
-  - `Piles_Assessment`: Driven steel tube foundations
-  - `Suction_Caisson_Assessment`: Large steel buckets with suction installation
-  - `GBS_Assessment`: Gravity-based concrete structures
-  - `Cables_Assessment`: Subsea power transmission cables
-- **Dominant_Constraint**: Primary geological constraint
-- **Comments**: Engineering guidance and recommendations
+The application uses a **multi-source data integration approach** to provide comprehensive geological information:
 
-### Constraint Levels
+#### 1. **Primary Data Source: `geological_data.csv`**
+- **Purpose**: Main geological features database with foundation assessments
+- **Contents**: 86 geological features with basic metadata and constraint assessments
+- **Key Columns**:
+  - `Geological_Feature`: Feature name (e.g., "Peat (organic-rich)", "Seamount")
+  - `Setting`: Geological environment (Glacial, Marine, Coastal, etc.)
+  - `Process`: Formation process (Lithology, Relief, Structure, etc.)
+  - `Constraint_Type`: Primary constraint category
+  - `Dominant_Constraint`: Main geological constraint
+  - `Piles_Assessment`: Constraint level for driven steel tube foundations
+  - `Suction_Caisson_Assessment`: Constraint level for suction caisson foundations
+  - `GBS_Assessment`: Constraint level for gravity-based structures
+  - `Cables_Assessment`: Constraint level for subsea cables
+  - `Definition`: Basic feature definition (often truncated)
+  - `Comments`: Engineering comments (often truncated)
 
-The tool uses three constraint levels for foundation assessments:
-- **Higher Constraint**: Significant engineering challenges, requires special consideration
-- **Moderate Constraint**: Some engineering considerations needed
-- **Lower Constraint**: Minimal geological constraints
+#### 2. **Enhanced Definitions: `reference-geological-constraints.csv`**
+- **Purpose**: Complete scientific definitions with proper citations
+- **Encoding**: Latin-1 (handles special characters like degree symbols)
+- **Key Columns**:
+  - Column 0: `Geological feature inventory` (feature names)
+  - `Definition `: Complete scientific descriptions with citations
+  - Columns 4+: Geological constraint indicators (marked with 'x')
+- **Usage**: Provides full-length definitions that replace truncated ones from main data
 
-## Key Features
+#### 3. **Engineering Constraints: `reference-engineering-constraints.csv`**
+- **Purpose**: Engineering-specific constraints for infrastructure planning
+- **Encoding**: Latin-1 (handles special characters)
+- **Structure**: Similar to geological constraints with 'x' markers indicating applicable constraints
+- **Columns**: 30 engineering constraint categories covering installation, operation, and maintenance considerations
 
-### 1. Intelligent Filtering System
-- **Hierarchical Filtering**: Setting → Process → Constraint Type → Geological Feature
-- **Dynamic Updates**: Geological features filter automatically based on selected criteria
-- **Real-time Results**: Instant updates when filter selections change
+### Data Loading Process
 
-### 2. Foundation Comparison
-- **Side-by-side Analysis**: Compare any two foundation types simultaneously
-- **Constraint Assessment**: View specific constraint levels for each foundation type
-- **Complexity Rating**: Automatic complexity assessment (High/Medium/Low/Unknown)
+The application implements a **robust multi-encoding data loading system**:
 
-### 3. Professional Interface
-- **Responsive Design**: Clean, professional layout optimized for engineering workflows
-- **Interactive Tooltips**: Hover over labels for detailed explanations
-- **Visual Indicators**: Color-coded foundation headers and constraint tags
-- **Export Functionality**: Export selection data for reporting
+```python
+@st.cache_data
+def load_constraint_data():
+    """Load constraint data from CSV files with encoding handling."""
+    encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+    
+    # Try multiple encodings until successful
+    for encoding in encodings:
+        try:
+            geo_constraints = pd.read_csv("reference-geological-constraints.csv", encoding=encoding)
+            break
+        except UnicodeDecodeError:
+            continue
+    
+    return geo_constraints, eng_constraints
+```
 
-### 4. Comprehensive Data
-- **86 Geological Features**: From peat deposits to submarine canyons
-- **12 Geological Settings**: Covering all offshore environments
-- **7 Geological Processes**: Complete process categorization
-- **Real Engineering Data**: Based on actual offshore wind research and case studies
+### Data Integration Workflow
+
+1. **Load Main Data**: `geological_data.csv` provides core feature information and assessments
+2. **Enhance Definitions**: Extract complete definitions from `reference-geological-constraints.csv`
+3. **Extract Constraints**: Parse both geological and engineering constraints from reference files
+4. **Merge Data**: Combine all sources into complete feature profiles
+5. **Apply Enhancements**: Add manually curated content for key features
 
 ## User Interface Components
 
-### Left Panel (Filters)
-1. **Setting & Process**: Geological environment and formation process selectors
-2. **Type of Constraint**: Primary constraint category filter
-3. **Geological Features**: Dynamically filtered feature selector
-4. **Foundation Types**: Two foundation type selectors for comparison
-5. **Action Buttons**: Reset filters and export functionality
+### Left Panel (Feature Selection)
+- **Geological Feature 1**: Primary feature selector
+- **Geological Feature 2**: Secondary feature selector  
+- **Reset Selection**: Clear all selections and start over
 
-### Right Panel (Results)
-1. **Selection Tags**: Current filter selections displayed as tags
-2. **Foundation Headers**: Color-coded headers for selected foundation types
-3. **Geological Constraints**: Key characteristics and dominant constraints
-4. **Engineering Significance**: Constraint assessments for each foundation type
-5. **Complexity Assessment**: Overall complexity levels
+### Right Panel (Comparison Display)
+1. **Feature Headers**: Color-coded headers for visual distinction
+2. **Geological Characteristics**: Setting, Process, Constraint Type, Dominant Constraint
+3. **Constraints Analysis**: Combined card with geological (blue) and engineering (orange) constraint pills
+4. **Foundation Assessment Comparison**: Constraint levels for all foundation types
+5. **Feature Definitions**: Complete scientific descriptions with citations
 6. **Engineering Comments**: Practical guidance and recommendations
 
-## Usage Workflow
+## Constraint System
 
-1. **Select Geological Setting**: Choose the environment (e.g., Marine, Glacial, Coastal)
-2. **Choose Process**: Select the geological process (e.g., Lithology, Relief)
-3. **Filter by Constraint**: Optionally filter by constraint type
-4. **Pick Geological Feature**: Select from filtered list of geological features
-5. **Compare Foundations**: Choose two foundation types for comparison
-6. **Review Results**: Analyze constraint assessments and engineering guidance
-7. **Export Data**: Export selection for reporting or further analysis
+### Constraint Pills
+Visual indicators using color-coded pills for easy constraint identification:
 
-## Data Sources
+- **Geological Constraints** (Blue Pills): `#e3f2fd` background, `#2196f3` border
+  - Examples: "Spatial soil variability", "Strong bedrock at/near seabed", "Deep water"
+  
+- **Engineering Constraints** (Orange Pills): `#fff3e0` background, `#ff9800` border  
+  - Examples: "Cable/pipeline abrasion", "Seabed preparation required", "Poor drivability"
 
-The geological assessment matrix is based on research supported by:
-- **UKRI** under the UK Government's Horizon Europe Guarantee (grant number 10067926)
-- **GSEU Project** (European Union's Horizon Europe programme, grant agreement No 101075609)
-- **Extensive Literature Review** including peer-reviewed research papers
-- **Industry Best Practices** from offshore wind development projects
+### Foundation Assessment Levels
+- **Higher Constraint**: Significant engineering challenges requiring special consideration
+- **Moderate Constraint**: Some engineering considerations needed
+- **Lower Constraint**: Minimal geological constraints
 
-## Technical Implementation
+## Styling & UI Design
 
-### Core Functions
-
-- `load_geological_data()`: CSV data loading with error handling
-- `filter_geological_features()`: Dynamic feature filtering based on criteria
-- `get_feature_data()`: Retrieve specific geological feature information
-- `get_assessment()`: Extract constraint assessment for foundation types
-- `get_complexity_level()`: Convert assessments to complexity ratings
-- `create_tooltip()`: Generate interactive tooltips with hover functionality
-
-### Performance Optimizations
-
-- **Data Caching**: `@st.cache_data` decorator for efficient CSV loading
-- **Minimal Recomputation**: Smart filtering to avoid unnecessary recalculations
-- **Responsive UI**: CSS optimizations for smooth user interactions
-
-### CSS Customizations
-
-- **Reduced Spacing**: Optimized gap between labels and dropdowns
-- **Professional Styling**: Consistent color scheme and typography
-- **Interactive Elements**: Hover effects and tooltips
+### Design Principles
+- **Consistent Containers**: All sections use `.section-container` styling with left borders
+- **Equal Heights**: Cards in the same row maintain consistent heights
+- **Professional Color Scheme**: Primary blue (`#1e4d5b`) for headers and accents
 - **Responsive Layout**: Adapts to different screen sizes
+- **Visual Hierarchy**: Clear section separation with styled headers
 
-## Development Guidelines
+### CSS Architecture
+```css
+/* Content containers - consistent styling for all sections */
+.section-container, .constraints-card {
+    background-color: #f8f9fa;
+    border-left: 3px solid #1e4d5b;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    border-radius: 0 5px 5px 0;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+```
 
-### Code Structure
-- **Modular Functions**: Each function has a single responsibility
-- **Clear Documentation**: Comprehensive docstrings and comments
-- **Error Handling**: Graceful handling of missing data and errors
-- **Type Hints**: Improved code readability and maintenance
+## Key Functions
 
-### Data Management
-- **CSV Format**: Easy to edit and maintain geological data
-- **Consistent Naming**: Standardized column names and values
-- **Data Validation**: Built-in checks for data integrity
+### Data Loading Functions
+- `load_geological_data()`: Load main CSV with error handling
+- `load_constraint_data()`: Load constraint files with multi-encoding support
 
-### UI/UX Principles
-- **User-Centric Design**: Workflow optimized for engineering decision-making
-- **Progressive Disclosure**: Information revealed as users make selections
-- **Visual Hierarchy**: Clear information architecture and layout
-- **Accessibility**: Proper labels and semantic markup
+### Data Processing Functions  
+- `get_complete_feature_data()`: Merge data from multiple sources for complete feature profiles
+- `get_assessment()`: Extract foundation constraint assessments
+- `get_constraints_for_feature()`: Parse constraint indicators from reference files
 
-## Deployment Options
+### UI Helper Functions
+- `create_tooltip()`: Generate interactive help tooltips
+- **Removed unused functions**: `get_complexity_level()`, `filter_geological_features()`, `get_foundation_header_class()`
+
+## Data Update Process
+
+### Updating Geological Features
+1. **Main Data**: Edit `geological_data.csv` to add/modify features
+2. **Complete Definitions**: Update `reference-geological-constraints.csv` for full scientific descriptions
+3. **Engineering Constraints**: Modify `reference-engineering-constraints.csv` for constraint indicators
+4. **Enhanced Comments**: Add entries to the `enhanced_comments` dictionary in `matrix.py` for key features
+
+### File Encoding Notes
+- `geological_data.csv`: UTF-8 encoding
+- `reference-geological-constraints.csv`: Latin-1 encoding (contains special characters)
+- `reference-engineering-constraints.csv`: Latin-1 encoding (contains special characters)
+
+### Adding New Features
+To add a new geological feature:
+
+1. Add a row to `geological_data.csv` with all required columns
+2. Add corresponding row to both constraint reference files
+3. Mark applicable constraints with 'x' in constraint columns
+4. Test the application to ensure proper loading and display
+5. Consider adding enhanced engineering comments for significant features
+
+## Performance Optimizations
+
+- **Streamlit Caching**: `@st.cache_data` decorators for efficient data loading
+- **Single Data Load**: All CSV files loaded once at startup
+- **Minimal Recomputation**: Direct feature comparison without filtering overhead
+- **CSS Optimizations**: Efficient styling for smooth user interactions
+
+## Development & Maintenance
+
+### Code Quality
+- **Clean Architecture**: 564 lines of well-documented, maintainable code
+- **Error Handling**: Graceful handling of missing files and encoding issues
+- **Type Safety**: Proper null checks and data validation
+- **Documentation**: Comprehensive docstrings and comments
+
+### Best Practices Implemented
+- **DRY Principle**: Reusable functions and consistent styling
+- **Single Responsibility**: Each function has a clear, focused purpose  
+- **Consistent Naming**: Descriptive variable and function names
+- **Modular CSS**: Organized styling with logical groupings
+
+### Testing Guidelines
+1. Test with different geological features to ensure data completeness
+2. Verify constraint pills display correctly for various features
+3. Check foundation assessments load properly for all foundation types
+4. Test encoding handling with features containing special characters
+5. Validate responsive design across different screen sizes
+
+## Deployment
 
 ### Local Development
 ```bash
 streamlit run matrix.py
 ```
 
-### Cloud Deployment
+### Production Deployment
 The application can be deployed to:
-- **Streamlit Cloud**: Direct GitHub integration
-- **Heroku**: Container-based deployment
-- **AWS/Azure/GCP**: Cloud platform deployment
-- **Docker**: Containerized deployment
+- **Streamlit Cloud**: Direct GitHub integration with automatic updates
+- **Docker**: Containerized deployment for consistent environments
+- **Cloud Platforms**: AWS, Azure, GCP with container services
+- **Traditional Servers**: Python environment with Streamlit installation
 
 ### Environment Requirements
 ```
@@ -173,65 +240,60 @@ streamlit>=1.28.0
 pandas>=2.0.0
 ```
 
+## Research Attribution
+
+This work was supported by:
+- **UKRI** under the UK Government's Horizon Europe Guarantee (grant number 10067926)
+- **GSEU Project** (European Union's Horizon Europe programme, grant agreement No 101075609)
+- **Comprehensive Literature Review** including peer-reviewed research papers
+- **Industry Best Practices** from offshore wind development projects
+
+The geological assessment matrix incorporates research from numerous academic institutions, industry partners, and offshore wind development projects across European waters.
+
 ## Future Enhancements
 
-### Data Expansion
-- [ ] Additional geological features from new research
-- [ ] Regional data variations (North Sea, Baltic Sea, etc.)
+### Data Improvements
+- [ ] Complete engineering comments for all 86 geological features
+- [ ] Regional data variations for different European waters
+- [ ] Integration with real-time geological databases
 - [ ] Seasonal and environmental condition factors
-- [ ] Integration with GIS data sources
 
-### Functionality Improvements
-- [ ] PDF report generation
-- [ ] Advanced filtering and search capabilities
-- [ ] Data visualization and charts
-- [ ] Multi-project comparison features
-- [ ] Integration with external geological databases
+### Feature Additions
+- [ ] PDF report generation for selected comparisons
+- [ ] Advanced search and filtering capabilities within features
+- [ ] Data visualization charts for constraint analysis
+- [ ] Multi-project comparison and history tracking
+- [ ] Integration with GIS mapping systems
 
 ### Technical Enhancements
 - [ ] API development for programmatic access
-- [ ] Real-time data updates from research databases
-- [ ] Advanced analytics and machine learning insights
+- [ ] Machine learning insights for foundation recommendations
+- [ ] Real-time collaboration features for team assessments
 - [ ] Mobile-responsive design improvements
+- [ ] Advanced analytics and usage tracking
 
 ## Contributing
 
-When updating geological data or adding features:
+When updating the application:
 
-1. **Data Updates**: Edit `geological_data.csv` following the established format
-2. **Code Changes**: Maintain existing function signatures and documentation
-3. **Testing**: Verify all filters and data display correctly
-4. **Documentation**: Update this CLAUDE.md file with any significant changes
+1. **Data Updates**: Follow the multi-file data architecture and test all encodings
+2. **Code Changes**: Maintain existing function signatures and comprehensive documentation  
+3. **Styling Updates**: Use consistent CSS classes and maintain visual hierarchy
+4. **Testing**: Verify all features display correctly and constraints load properly
+5. **Documentation**: Update this CLAUDE.md file with any significant changes
 
-## Support and Maintenance
+## Support
 
-### Data Quality
-- Regular validation of geological data accuracy
+### Common Issues
+- **Encoding Errors**: Ensure constraint files use Latin-1 encoding for special characters
+- **Missing Data**: Check all three CSV files are present and properly formatted
+- **Display Issues**: Verify CSS classes are applied correctly and containers have equal heights
+- **Performance**: Monitor data loading times and consider additional caching if needed
+
+### Data Quality Assurance
+- Regular validation of geological data accuracy and completeness
 - Updates based on new research and industry developments
-- Consistency checks for constraint assessments
+- Consistency checks for constraint assessments across all foundation types
+- User feedback integration for continuous improvement
 
-### Technical Maintenance
-- Streamlit version compatibility
-- Performance monitoring and optimization
-- Security updates for dependencies
-
-### User Support
-- Clear error messages and guidance
-- Comprehensive tooltips and help text
-- Professional documentation and examples
-
-## Research Impact
-
-This tool supports evidence-based decision making in offshore wind development by:
-- **Reducing Risk**: Early identification of geological constraints
-- **Optimizing Design**: Foundation type selection based on site conditions
-- **Cost Efficiency**: Avoiding unsuitable geological features
-- **Knowledge Transfer**: Sharing research insights with industry practitioners
-
-The geological assessment matrix represents a significant advancement in making complex geological research accessible for practical offshore wind development applications.
-
-## Acknowledgments
-
-This work was supported by UKRI under the UK Government's Horizon Europe Guarantee (grant number 10067926) as part of the GSEU project (European Union's Horizon Europe programme, grant agreement No 101075609).
-
-The comprehensive geological database incorporates research from numerous academic institutions, industry partners, and offshore wind development projects across European waters.
+This comprehensive tool represents a significant advancement in making complex geological research accessible for practical offshore wind development applications, providing engineers and developers with the detailed information needed for informed decision-making.
