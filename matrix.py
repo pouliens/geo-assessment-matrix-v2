@@ -112,7 +112,7 @@ st.markdown("""
         font-size: 1.5rem;
         font-weight: bold;
         padding: 1rem;
-        margin: 1rem 0;
+        margin: 0rem 0;
     }
     
     .cables-header {
@@ -266,15 +266,6 @@ def get_complete_feature_data(feature_name):
             definition = constraint_row['Definition '].iloc[0]
             if pd.notna(definition) and str(definition).strip():
                 complete_data['Definition'] = str(definition).strip()
-    
-    # Enhanced engineering comments for key features
-    enhanced_comments = {
-        'Seamount': 'Unsuitable for all infrastructure types due to typically deep water settings, steep slopes, extremely strong lithologies, and associated hazards (e.g., seismic activity).',
-        'Back barrier': 'A hard stratum overlying a weaker one presents a danger that may cause a foundation to punch through the softer sediments.\n\nExposure of near shore cables may result from coastal processes; increasing risk to cables from external threats. Cables can be protected via Horizontal drilling (HDD).',
-    }
-    
-    if feature_name in enhanced_comments:
-        complete_data['Comments'] = enhanced_comments[feature_name]
     
     return pd.Series(complete_data)
 
