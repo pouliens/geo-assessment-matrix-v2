@@ -179,18 +179,40 @@ Visual indicators using color-coded pills for easy constraint identification:
 4. **Enhanced Comments**: Add entries to the `enhanced_comments` dictionary in `matrix.py` for key features
 
 ### File Encoding Notes
-- `geological_data.csv`: UTF-8 encoding
-- `reference-geological-constraints.csv`: Latin-1 encoding (contains special characters)
-- `reference-engineering-constraints.csv`: Latin-1 encoding (contains special characters)
+- `geological_data.csv`: Multiple encoding support (UTF-8, Latin-1, CP1252, ISO-8859-1)
+- `reference-geological-constraints.csv`: Multiple encoding support (UTF-8, Latin-1, CP1252, ISO-8859-1)
+- `reference-engineering-constraints.csv`: Multiple encoding support (UTF-8, Latin-1, CP1252, ISO-8859-1)
 
-### Adding New Features
+**Important**: All data loading functions now include robust encoding detection to handle special characters automatically.
+
+### Critical Data Consistency Requirements
+
+**ESSENTIAL**: Feature names must be **identical** across all three CSV files for constraints to load properly.
+
+#### Adding New Features
 To add a new geological feature:
 
-1. Add a row to `geological_data.csv` with all required columns
-2. Add corresponding row to both constraint reference files
+1. Add a row to `geological_data.csv` with all required columns - **this is the authoritative source for feature names**
+2. Add corresponding rows to both constraint reference files using the **exact same feature name**
 3. Mark applicable constraints with 'x' in constraint columns
 4. Test the application to ensure proper loading and display
 5. Consider adding enhanced engineering comments for significant features
+
+#### Updating Existing Features
+When modifying feature names:
+
+1. **geological_data.csv is the master reference** - update the name here first
+2. Update the **identical name** in both constraint reference files:
+   - `reference-geological-constraints.csv`
+   - `reference-engineering-constraints.csv`
+3. Ensure exact character-by-character matching (spaces, punctuation, capitalization)
+4. Test constraint loading to verify the update worked
+
+#### Common Issues and Fixes
+- **Missing Constraints**: Check that feature names match exactly across all files
+- **Encoding Errors**: The application now handles multiple encodings automatically
+- **Partial Matches**: The constraint matching uses exact matching first, then fallback matching
+- **Case Sensitivity**: Feature name matching is case-sensitive
 
 ## Performance Optimizations
 
@@ -202,7 +224,8 @@ To add a new geological feature:
 ## Development & Maintenance
 
 ### Code Quality
-- **Clean Architecture**: 564 lines of well-documented, maintainable code
+- **Clean Architecture**: 509 lines of well-documented, maintainable code
+- **Robust Encoding Support**: Multi-encoding CSV loading with automatic fallback
 - **Error Handling**: Graceful handling of missing files and encoding issues
 - **Type Safety**: Proper null checks and data validation
 - **Documentation**: Comprehensive docstrings and comments

@@ -194,10 +194,28 @@ st.markdown("""
     .stSelectbox, .stSelectbox > label, .stSelectbox > div {
         margin-top: 0rem !important;
         margin-bottom: 0rem !important;
+        cursor: pointer !important;
+    }
+    
+    .stSelectbox > div > div {
+        cursor: pointer !important;
+    }
+    
+    .stSelectbox select {
+        cursor: pointer !important;
+    }
+    
+    .stSelectbox [data-baseweb="select"] {
+        cursor: pointer !important;
     }
     
     .stButton > button {
         text-align: center !important;
+    }
+    
+    .stButton > button > p, .stButton button p, .stButton p {
+        margin-bottom: 0 !important;
+        margin-top: 0 !important;
     }
     
     .stColumn .stButton {
@@ -354,12 +372,6 @@ with col1:
     geological_feature_1 = st.selectbox("**Geological Feature 1**", GEOLOGICAL_FEATURES, key="feature1")
     geological_feature_2 = st.selectbox("**Geological Feature 2**", GEOLOGICAL_FEATURES, 
                                        index=1 if len(GEOLOGICAL_FEATURES) > 1 else 0, key="feature2")
-    
-    if st.button("Reset Selection", use_container_width=True):
-        for key in ["feature1", "feature2"]:
-            if key in st.session_state:
-                del st.session_state[key]
-        st.rerun()
 
 # Right panel - Comparison display
 with col2:
