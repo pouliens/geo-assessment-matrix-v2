@@ -128,12 +128,6 @@ st.markdown("""
         color: white;
     }
     
-    .parameter-section {
-        background-color: #f8f9fa;
-        padding: 1rem;
-        margin: 0.5rem 0;
-        border-radius: 5px;
-    }
     
     .tags {
         margin: 1rem 0;
@@ -176,63 +170,77 @@ st.markdown("""
         line-height: 1.8;
     }
     
-    .section-container {
+    /* Card containers - consistent styling for all content sections */
+    .section-container, .constraints-card {
         background-color: #f8f9fa;
         border-left: 3px solid #1e4d5b;
         padding: 1rem;
         margin: 0.5rem 0;
         border-radius: 0 5px 5px 0;
+        min-height: 100px; /* Ensure consistent minimum height */
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
     }
     
-    .constraints-card {
-        background-color: #f8f9fa;
-        border-left: 3px solid #1e4d5b;
-        padding: 1rem;
-        margin: 0.5rem 0;
-        border-radius: 0 5px 5px 0;
+    /* Equal height containers for rows */
+    .equal-height-row {
+        display: flex;
+        align-items: stretch;
     }
     
+    .equal-height-col {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+    
+    .equal-height-col > div {
+        flex-grow: 1;
+    }
+    
+    /* Constraint-specific styling */
     .constraint-subheading {
         font-weight: bold;
-        margin: 1rem 0 0.5rem 0;
+        margin: 0.8rem 0 0.5rem 0;
         color: #1e4d5b;
         font-size: 0.95rem;
     }
     
-    /* Remove all paragraph margins globally */
+    .constraint-subheading:first-child {
+        margin-top: 0;
+    }
+    
+    /* Global text and spacing resets */
     p {
         margin-bottom: 0.5rem !important;
         margin-top: 0rem !important;
     }
     
-    /* Remove margins from all Streamlit form elements */
+    /* Streamlit component styling */
     .stSelectbox, .stSelectbox > label, .stSelectbox > div {
         margin-top: 0rem !important;
         margin-bottom: 0rem !important;
     }
     
-    /* Add pointer cursor to dropdown elements */
     .stSelectbox > div > div {
         cursor: pointer !important;
     }
     
-    /* Center text in buttons */
     .stButton > button {
         text-align: center !important;
     }
     
-    /* Remove margin from paragraphs inside buttons */
     .stButton > button p {
         margin-bottom: 0rem !important;
         margin-top: 0rem !important;
     }
     
-    /* Add margin-top to sidebar buttons */
     .stColumn .stButton {
         margin-top: 1rem !important;
     }
     
-    /* Custom tooltip styling */
+    /* Tooltip system */
     .tooltip {
         position: relative;
         display: inline-block;
@@ -589,13 +597,13 @@ with col2:
         if feature_data_1 is not None:
             comments_text = feature_data_1['Comments'] if pd.notna(feature_data_1['Comments']) else "No comments available"
             st.markdown(f"""
-            <div class="parameter-section">
+            <div class="section-container">
                 <p>{comments_text}</p>
             </div>
             """, unsafe_allow_html=True)
         else:
             st.markdown("""
-            <div class="parameter-section">
+            <div class="section-container">
                 <p>No engineering comments available</p>
             </div>
             """, unsafe_allow_html=True)
@@ -604,13 +612,13 @@ with col2:
         if feature_data_2 is not None:
             comments_text = feature_data_2['Comments'] if pd.notna(feature_data_2['Comments']) else "No comments available"
             st.markdown(f"""
-            <div class="parameter-section">
+            <div class="section-container">
                 <p>{comments_text}</p>
             </div>
             """, unsafe_allow_html=True)
         else:
             st.markdown("""
-            <div class="parameter-section">
+            <div class="section-container">
                 <p>No engineering comments available</p>
             </div>
             """, unsafe_allow_html=True)
