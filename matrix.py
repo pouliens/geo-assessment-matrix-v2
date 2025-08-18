@@ -374,12 +374,13 @@ with col2:
     
     with col_c1:
         if feature_data_1 is not None:
+            definition_text = feature_data_1['Definition'] if pd.notna(feature_data_1['Definition']) else "No definition available"
             st.markdown(f"""
             <div class="section-container">
                 <p><strong>Setting:</strong> {feature_data_1['Setting']}</p>
-                <p><strong>Process:</strong> {feature_data_1['Process']}</p>
                 <p><strong>Constraint Type:</strong> {feature_data_1['Constraint_Type']}</p>
                 <p><strong>Dominant Constraint:</strong> {feature_data_1['Dominant_Constraint']}</p>
+                <p><strong>Definition:</strong> {definition_text}</p>
             </div>
             """, unsafe_allow_html=True)
         else:
@@ -387,12 +388,13 @@ with col2:
     
     with col_c2:
         if feature_data_2 is not None:
+            definition_text = feature_data_2['Definition'] if pd.notna(feature_data_2['Definition']) else "No definition available"
             st.markdown(f"""
             <div class="section-container">
                 <p><strong>Setting:</strong> {feature_data_2['Setting']}</p>
-                <p><strong>Process:</strong> {feature_data_2['Process']}</p>
                 <p><strong>Constraint Type:</strong> {feature_data_2['Constraint_Type']}</p>
                 <p><strong>Dominant Constraint:</strong> {feature_data_2['Dominant_Constraint']}</p>
+                <p><strong>Definition:</strong> {definition_text}</p>
             </div>
             """, unsafe_allow_html=True)
         else:
@@ -469,26 +471,6 @@ with col2:
             st.markdown(f'<div class="section-container">{foundation_content}</div>', unsafe_allow_html=True)
         else:
             st.markdown('<div class="section-container"><p><strong>No assessment data available</strong></p></div>', unsafe_allow_html=True)
-    
-    # Feature Definitions
-    st.markdown(f'<div class="section-header">{create_tooltip("Feature Definitions", "Scientific descriptions of both geological features")}</div>', 
-                unsafe_allow_html=True)
-    
-    col_d1, col_d2 = st.columns(2)
-    
-    with col_d1:
-        if feature_data_1 is not None:
-            definition_text = feature_data_1['Definition'] if pd.notna(feature_data_1['Definition']) else "No definition available"
-            st.markdown(f'<div class="section-container"><p>{definition_text}</p></div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div class="section-container"><p>No definition available</p></div>', unsafe_allow_html=True)
-    
-    with col_d2:
-        if feature_data_2 is not None:
-            definition_text = feature_data_2['Definition'] if pd.notna(feature_data_2['Definition']) else "No definition available"
-            st.markdown(f'<div class="section-container"><p>{definition_text}</p></div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div class="section-container"><p>No definition available</p></div>', unsafe_allow_html=True)
     
     # Engineering Comments
     st.markdown(f'<div class="section-header">{create_tooltip("Engineering Comments", "Practical guidance and recommendations for offshore wind development")}</div>', 
