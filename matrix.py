@@ -13,7 +13,7 @@ st.set_page_config(
 def load_geological_data():
     """Load geological data from CSV file with proper error handling."""
     try:
-        df = pd.read_csv("geological_data.csv")
+        df = pd.read_csv("geological_data_comprehensive.csv")
         return df
     except FileNotFoundError:
         st.error("geological_data.csv not found. Please ensure the data file is in the correct location.")
@@ -324,6 +324,10 @@ with col1:
     
     # Action buttons
     if st.button("Reset Filters", use_container_width=True):
+        # Clear all session state keys for filters
+        for key in ["setting", "process", "constraint", "geological_feature", "foundation1", "foundation2"]:
+            if key in st.session_state:
+                del st.session_state[key]
         st.rerun()
 
 with col2:
