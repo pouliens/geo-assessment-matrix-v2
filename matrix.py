@@ -300,6 +300,44 @@ def get_feature_data(geological_feature_name):
             return feature_data.iloc[0]
     return None
 
+def get_complete_feature_data(geological_feature_name):
+    """Get complete geological feature data with full definitions from constraint files."""
+    # Start with basic data from main file
+    main_data = get_feature_data(geological_feature_name)
+    if main_data is None:
+        return None
+    
+    # Create a dictionary with the main data
+    complete_data = {
+        'Geological_Feature': main_data['Geological_Feature'],
+        'Setting': main_data['Setting'],
+        'Process': main_data['Process'],
+        'Constraint_Type': main_data['Constraint_Type'],
+        'Dominant_Constraint': main_data['Dominant_Constraint'],
+        'Definition': main_data['Definition'],  # Will be overridden if found in constraints
+        'Comments': main_data['Comments']  # Will be overridden if found in constraints
+    }
+    
+    # Try to get complete definition from geological constraints file
+    if not geo_constraints_data.empty:
+        first_col = geo_constraints_data.columns[0]
+        feature_row = geo_constraints_data[geo_constraints_data[first_col] == geological_feature_name]
+        if not feature_row.empty and 'Definition ' in geo_constraints_data.columns:
+            definition = feature_row['Definition '].iloc[0]
+            if pd.notna(definition) and str(definition).strip():
+                complete_data['Definition'] = str(definition).strip()
+    
+    # Manually enhanced engineering comments for key features
+    enhanced_comments = {
+        'Seamount': 'Unsuitable for all infrastructure types due to typically deep water settings, steep slopes, extremely strong lithologies, and associated hazards (e.g., seismic activity).',
+        # Add more enhanced comments here as needed
+    }
+    
+    if geological_feature_name in enhanced_comments:
+        complete_data['Comments'] = enhanced_comments[geological_feature_name]
+    
+    return pd.Series(complete_data)
+
 def get_assessment(feature_data, foundation_type):
     """Get constraint assessment for foundation type."""
     if feature_data is None:
@@ -429,9 +467,9 @@ with col2:
     with col_feature2:
         st.markdown(f'<div class="foundation-header pipelines-header">{geological_feature_2}</div>', unsafe_allow_html=True)
     
-    # Get data for both selected geological features
-    feature_data_1 = get_feature_data(geological_feature_1)
-    feature_data_2 = get_feature_data(geological_feature_2)
+    # Get complete data for both selected geological features (including full definitions)
+    feature_data_1 = get_complete_feature_data(geological_feature_1)
+    feature_data_2 = get_complete_feature_data(geological_feature_2)
     
     # Geological Constraints section with tooltip
     st.markdown(f'<div class="section-header">{create_tooltip("Geological Characteristics", "Key geological characteristics for both selected features")}</div>', 
