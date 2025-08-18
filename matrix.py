@@ -13,7 +13,7 @@ st.set_page_config(
 def load_geological_data():
     """Load geological data from CSV file with proper error handling."""
     try:
-        df = pd.read_csv("geological_data_comprehensive.csv")
+        df = pd.read_csv("geological_data.csv")
         return df
     except FileNotFoundError:
         st.error("geological_data.csv not found. Please ensure the data file is in the correct location.")
@@ -272,174 +272,160 @@ st.markdown("""
 col1, col2 = st.columns([1, 3])
 
 with col1:
-    st.header("Geological Assessment")
+    st.header("Geological Comparison")
     st.write("""
-    Explore geological features and their engineering constraints for offshore windfarm development. 
-    Compare foundation types and assess geological risks for optimal site selection.
+    Compare two geological features and their engineering constraints for offshore windfarm development.
     """)
     
-    st.subheader("Filters")
+    st.subheader("Feature Selection")
     
-    # Setting & Process filter with tooltips
-    st.markdown(create_tooltip("**Setting & Process**", 
-                              "Setting: Geological environment where the feature occurs (e.g., Glacial, Marine, Coastal)<br>"
-                              "Process: Geological process that formed the feature (e.g., Lithology, Relief, Structure)"), 
-                unsafe_allow_html=True)
+    # Geological Feature 1
+    st.markdown("**Geological Feature 1**")
+    geological_feature_1 = st.selectbox("Feature 1", GEOLOGICAL_FEATURES, key="feature1", label_visibility="collapsed")
     
-    col_setting, col_process = st.columns(2)
-    with col_setting:
-        setting = st.selectbox("Setting", ["All"] + SETTINGS, key="setting", label_visibility="collapsed")
-    with col_process:
-        process = st.selectbox("Process", ["All"] + PROCESSES, key="process", label_visibility="collapsed")
-    
-    # Type of constraint filter with tooltip
-    st.markdown(create_tooltip("**Type of Constraint**", 
-                              "Primary geological constraint category affecting foundation installation and performance"), 
-                unsafe_allow_html=True)
-    constraint_type = st.selectbox("Constraint Type", ["All"] + CONSTRAINT_TYPES, key="constraint", label_visibility="collapsed")
-    
-    # Geological Features filter with tooltip
-    filtered_features = filter_geological_features(setting, process, constraint_type)
-    st.markdown(create_tooltip("**Geological Features**", 
-                              "Specific geological features filtered based on your selected criteria above"), 
-                unsafe_allow_html=True)
-    geological_feature = st.selectbox("Geological Feature", 
-                                    filtered_features if filtered_features else ["No features match criteria"], 
-                                    key="geological_feature", label_visibility="collapsed")
-    
-    # Foundation type filters with tooltips
-    st.markdown(create_tooltip("**Foundation Type 1**", 
-                              "First foundation type for comparison<br>"
-                              "• Piles: Driven steel tube foundations<br>"
-                              "• Suction Caisson: Large steel buckets with suction installation<br>"
-                              "• GBS: Gravity-based concrete structures<br>"
-                              "• Cables: Subsea power transmission cables"), 
-                unsafe_allow_html=True)
-    foundation_type_1 = st.selectbox("Foundation Type 1", FOUNDATION_TYPES, key="foundation1", label_visibility="collapsed")
-    
-    st.markdown(create_tooltip("**Foundation Type 2**", 
-                              "Second foundation type for comparison"), 
-                unsafe_allow_html=True)
-    foundation_type_2 = st.selectbox("Foundation Type 2", FOUNDATION_TYPES, index=1, key="foundation2", label_visibility="collapsed")
+    # Geological Feature 2
+    st.markdown("**Geological Feature 2**") 
+    geological_feature_2 = st.selectbox("Feature 2", GEOLOGICAL_FEATURES, index=1 if len(GEOLOGICAL_FEATURES) > 1 else 0, key="feature2", label_visibility="collapsed")
     
     # Action buttons
-    if st.button("Reset Filters", use_container_width=True):
-        # Clear all session state keys for filters
-        for key in ["setting", "process", "constraint", "geological_feature", "foundation1", "foundation2"]:
+    if st.button("Reset Selection", use_container_width=True):
+        # Clear all session state keys for features
+        for key in ["feature1", "feature2"]:
             if key in st.session_state:
                 del st.session_state[key]
         st.rerun()
 
 with col2:
-    # Parameter tags showing current selections
-    st.markdown(f"""
-    <div class="tags">
-        <span class="tag">SETTING: {setting.upper()}</span>
-        <span class="tag">PROCESS: {process.upper()}</span>
-        <span class="tag">CONSTRAINT: {constraint_type.upper()}</span>
-        <span class="tag">FEATURE: {geological_feature.upper()}</span>
-    </div>
-    """, unsafe_allow_html=True)
+    # Feature comparison headers
+    col_feature1, col_feature2 = st.columns(2)
     
-    # Foundation type headers
-    col_foundation1, col_foundation2 = st.columns(2)
+    with col_feature1:
+        st.markdown(f'<div class="foundation-header cables-header">{geological_feature_1}</div>', unsafe_allow_html=True)
     
-    with col_foundation1:
-        header_class = get_foundation_header_class(foundation_type_1)
-        st.markdown(f'<div class="foundation-header {header_class}">{foundation_type_1}</div>', unsafe_allow_html=True)
+    with col_feature2:
+        st.markdown(f'<div class="foundation-header pipelines-header">{geological_feature_2}</div>', unsafe_allow_html=True)
     
-    with col_foundation2:
-        header_class = get_foundation_header_class(foundation_type_2)
-        st.markdown(f'<div class="foundation-header {header_class}">{foundation_type_2}</div>', unsafe_allow_html=True)
-    
-    # Get data for selected geological feature
-    feature_data = get_feature_data(geological_feature)
+    # Get data for both selected geological features
+    feature_data_1 = get_feature_data(geological_feature_1)
+    feature_data_2 = get_feature_data(geological_feature_2)
     
     # Geological Constraints section with tooltip
-    st.markdown(f'<div class="section-header">{create_tooltip("Geological Constraints", "Key geological characteristics and dominant constraints for the selected feature")}</div>', 
+    st.markdown(f'<div class="section-header">{create_tooltip("Geological Characteristics", "Key geological characteristics for both selected features")}</div>', 
                 unsafe_allow_html=True)
     
-    col_c1, col_p1 = st.columns(2)
+    col_c1, col_c2 = st.columns(2)
     
     with col_c1:
-        if feature_data is not None:
-            st.markdown(f"**Setting:** {feature_data['Setting']}")
-            st.markdown(f"**Process:** {feature_data['Process']}")
-            st.markdown(f"**Constraint Type:** {feature_data['Constraint_Type']}")
-            st.markdown(f"**Dominant Constraint:** {feature_data['Dominant_Constraint']}")
+        if feature_data_1 is not None:
+            st.markdown(f"**Setting:** {feature_data_1['Setting']}")
+            st.markdown(f"**Process:** {feature_data_1['Process']}")
+            st.markdown(f"**Constraint Type:** {feature_data_1['Constraint_Type']}")
+            st.markdown(f"**Dominant Constraint:** {feature_data_1['Dominant_Constraint']}")
         else:
-            st.markdown("**No data available for selected feature**")
-    
-    with col_p1:
-        if feature_data is not None:
-            definition_text = feature_data['Definition'] if pd.notna(feature_data['Definition']) else "No definition available"
-            st.markdown(f"**Definition:** {definition_text}")
-        else:
-            st.markdown("**No definition available**")
-    
-    # Engineering Significance section with tooltip
-    st.markdown(f'<div class="section-header">{create_tooltip("Engineering Significance", "Constraint levels for foundation installation and performance (Higher/Moderate/Lower Constraint)")}</div>', 
-                unsafe_allow_html=True)
-    
-    col_c2, col_p2 = st.columns(2)
-    
-    assessment_1 = get_assessment(feature_data, foundation_type_1)
-    assessment_2 = get_assessment(feature_data, foundation_type_2)
+            st.markdown("**No data available for Feature 1**")
     
     with col_c2:
-        st.markdown(f"""
-        <div class="parameter-section">
-            <p><strong>{foundation_type_1}:</strong> {assessment_1}</p>
-        </div>
-        """, unsafe_allow_html=True)
+        if feature_data_2 is not None:
+            st.markdown(f"**Setting:** {feature_data_2['Setting']}")
+            st.markdown(f"**Process:** {feature_data_2['Process']}")
+            st.markdown(f"**Constraint Type:** {feature_data_2['Constraint_Type']}")
+            st.markdown(f"**Dominant Constraint:** {feature_data_2['Dominant_Constraint']}")
+        else:
+            st.markdown("**No data available for Feature 2**")
     
-    with col_p2:
-        st.markdown(f"""
-        <div class="parameter-section">
-            <p><strong>{foundation_type_2}:</strong> {assessment_2}</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Complexity Assessment section with tooltip
-    st.markdown(f'<div class="section-header">{create_tooltip("Complexity Assessment", "Overall geological complexity level based on constraint assessments")}</div>', 
+    # Foundation Assessment Comparison
+    st.markdown(f'<div class="section-header">{create_tooltip("Foundation Assessment Comparison", "Constraint levels for all foundation types for both features")}</div>', 
                 unsafe_allow_html=True)
     
-    col_c3, col_p3 = st.columns(2)
+    col_f1, col_f2 = st.columns(2)
     
-    complexity_1 = get_complexity_level(assessment_1)
-    complexity_2 = get_complexity_level(assessment_2)
+    with col_f1:
+        if feature_data_1 is not None:
+            for foundation_type in FOUNDATION_TYPES:
+                assessment = get_assessment(feature_data_1, foundation_type)
+                st.markdown(f"**{foundation_type}:** {assessment}")
+        else:
+            st.markdown("**No assessment data available**")
     
-    with col_c3:
-        st.markdown(f"""
-        <div class="parameter-section">
-            <p><strong>Complexity Level:</strong> {complexity_1}</p>
-        </div>
-        """, unsafe_allow_html=True)
+    with col_f2:
+        if feature_data_2 is not None:
+            for foundation_type in FOUNDATION_TYPES:
+                assessment = get_assessment(feature_data_2, foundation_type)
+                st.markdown(f"**{foundation_type}:** {assessment}")
+        else:
+            st.markdown("**No assessment data available**")
     
-    with col_p3:
-        st.markdown(f"""
-        <div class="parameter-section">
-            <p><strong>Complexity Level:</strong> {complexity_2}</p>
-        </div>
-        """, unsafe_allow_html=True)
+    # Definitions section
+    st.markdown(f'<div class="section-header">{create_tooltip("Feature Definitions", "Scientific descriptions of both geological features")}</div>', 
+                unsafe_allow_html=True)
     
-    # Engineering Comments section with tooltip
+    col_d1, col_d2 = st.columns(2)
+    
+    with col_d1:
+        if feature_data_1 is not None:
+            definition_text = feature_data_1['Definition'] if pd.notna(feature_data_1['Definition']) else "No definition available"
+            st.markdown(f"""
+            <div class="parameter-section">
+                <p>{definition_text}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="parameter-section">
+                <p>No definition available</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col_d2:
+        if feature_data_2 is not None:
+            definition_text = feature_data_2['Definition'] if pd.notna(feature_data_2['Definition']) else "No definition available"
+            st.markdown(f"""
+            <div class="parameter-section">
+                <p>{definition_text}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="parameter-section">
+                <p>No definition available</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Engineering Comments section
     st.markdown(f'<div class="section-header">{create_tooltip("Engineering Comments", "Practical guidance and recommendations for offshore wind development")}</div>', 
                 unsafe_allow_html=True)
     
-    if feature_data is not None:
-        comments_text = feature_data['Comments'] if pd.notna(feature_data['Comments']) else "No comments available"
-        st.markdown(f"""
-        <div class="parameter-section">
-            <p>{comments_text}</p>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="parameter-section">
-            <p>No engineering comments available for the selected feature.</p>
-        </div>
-        """, unsafe_allow_html=True)
+    col_e1, col_e2 = st.columns(2)
+    
+    with col_e1:
+        if feature_data_1 is not None:
+            comments_text = feature_data_1['Comments'] if pd.notna(feature_data_1['Comments']) else "No comments available"
+            st.markdown(f"""
+            <div class="parameter-section">
+                <p>{comments_text}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="parameter-section">
+                <p>No engineering comments available</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col_e2:
+        if feature_data_2 is not None:
+            comments_text = feature_data_2['Comments'] if pd.notna(feature_data_2['Comments']) else "No comments available"
+            st.markdown(f"""
+            <div class="parameter-section">
+                <p>{comments_text}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="parameter-section">
+                <p>No engineering comments available</p>
+            </div>
+            """, unsafe_allow_html=True)
     
     # Download Report button
     st.markdown("<br>", unsafe_allow_html=True)
