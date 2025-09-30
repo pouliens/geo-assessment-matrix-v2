@@ -71,6 +71,7 @@ Thumbs.db
 # Claude AI
 CLAUDE.md
 .claude/
+.mcp.json
 
 # Temporary files
 *.tmp

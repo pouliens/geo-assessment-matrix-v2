@@ -259,6 +259,61 @@ st.markdown("""
         border-style: solid;
         border-color: #555 transparent transparent transparent;
     }
+    
+    /* CSS-only Terms Modal */
+    .terms-modal {
+        display: none !important;
+        position: fixed !important;
+        z-index: 1000 !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background-color: rgba(0,0,0,0.4) !important;
+    }
+    
+    .terms-modal:target {
+        display: block !important;
+    }
+    
+    .terms-modal-content {
+        background-color: white;
+        margin: 10% auto;
+        padding: 30px 40px;
+        border-radius: 8px;
+        width: 80%;
+        max-width: 700px;
+        max-height: 70vh;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        line-height: 1.6;
+    }
+    
+    .terms-close {
+        position: absolute;
+        right: 20px;
+        top: 15px;
+        font-size: 24px;
+        font-weight: bold;
+        text-decoration: none !important;
+        color: #666;
+        cursor: pointer;
+    }
+    
+    .terms-close:hover {
+        color: #000;
+        text-decoration: none !important;
+    }
+    
+    .terms-modal-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -266,6 +321,7 @@ st.markdown("""
 def create_tooltip(text, tooltip_content):
     """Create a tooltip with hover functionality."""
     return f'<span class="tooltip">{text}<span class="tooltiptext">{tooltip_content}</span></span>'
+
 
 def get_complete_feature_data(feature_name):
     """Get complete feature data combining main data with enhanced definitions."""
@@ -343,8 +399,23 @@ st.markdown("""
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <h2>EGDI - Geo-Assessment Matrix</h2>
         <div class="nav-links">
-            <a href="https://www.europe-geology.eu/" target="_blank">EGDI</a>
+            <a href="#termsModal" style="color: white; text-decoration: none;">Terms of Use</a>
+            <a href="https://www.europe-geology.eu/" style="margin-right: 2rem" target="_blank">EGDI</a>
         </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# Terms of Use Modal - separate component to prevent parsing issues
+st.markdown("""
+<div id="termsModal" class="terms-modal">
+    <a href="#" class="terms-modal-background"></a>
+    <div class="terms-modal-content">
+        <a href="#" class="terms-close">&times;</a>
+        <h3 style="margin-top: 0;">Terms of Use</h3>
+        <p>The copyright of materials derived from the British Geological Survey's work is vested in the Natural Environment Research Council [NERC]. No part of this work may be reproduced or transmitted in any form or by any means, or stored in a retrieval system of any nature, without the prior permission of the copyright holder, via the BGS Intellectual Property Rights Manager.</p>
+        <p>Use by customers of information provided by the BGS, is at the customer's own risk. In view of the disparate sources of information at BGS's disposal, including such material donated to BGS, that BGS accepts in good faith as being accurate, the Natural Environment Research Council (NERC) gives no warranty, expressed or implied, as to the quality or accuracy of the information supplied, or to the information's suitability for any use.</p>
+        <p>NERC/BGS accepts no liability whatever in respect of loss, damage, injury or other occurence however caused.</p>
     </div>
 </div>
 """, unsafe_allow_html=True)
