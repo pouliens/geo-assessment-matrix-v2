@@ -6,6 +6,7 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
+    curl \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
@@ -19,11 +20,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY matrix.py .
 COPY data/ ./data/
 
-# Expose port 8501 (Streamlit default)
-EXPOSE 8501
+# Expose port 80 (expected by DevOps template)
+EXPOSE 80
 
 # Health check
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
+HEALTHCHECK CMD curl --fail http://localhost:80/_stcore/health
 
-# Run Streamlit
-CMD ["streamlit", "run", "matrix.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Run Streamlit on port 80
+CMD ["streamlit", "run", "matrix.py", "--server.port=80", "--server.address=0.0.0.0"]
