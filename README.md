@@ -1,82 +1,57 @@
-# EGDI Geo-Assessment Matrix for Offshore Wind Development
+# EGDI Geo-Assessment Matrix
 
-A simplified feature comparison tool for geological assessment of offshore windfarm sites. Compare two geological features side-by-side with comprehensive data, constraints analysis, and foundation recommendations.
+Geological feature comparison tool for offshore wind development. Compare two features side-by-side with constraints analysis and foundation recommendations.
 
 ## Quick Start
 
-### Installation & Setup
-
-**Using uv (recommended - faster package management):**
 ```bash
-# Create virtual environment
+# Using uv (recommended)
 uv venv
-
-# Activate virtual environment
-source .venv/Scripts/activate  # Windows Git Bash/MinGW
-# or
-.venv\Scripts\activate  # Windows Command Prompt
-
-# Install dependencies
+source .venv/Scripts/activate  # Windows
 uv pip install -r requirements.txt
-
-# Run the application
 streamlit run matrix.py
-```
 
-**Using standard pip:**
-```bash
-# Create virtual environment
+# Using pip
 python -m venv .venv
-
-# Activate virtual environment  
-source .venv/Scripts/activate  # Windows Git Bash/MinGW
-# or
-.venv\Scripts\activate  # Windows Command Prompt
-
-# Install dependencies
+source .venv/Scripts/activate  # Windows
 pip install -r requirements.txt
-
-# Run the application
 streamlit run matrix.py
 ```
 
-The app will open in your browser at `http://localhost:8501`
+App opens at `http://localhost:8501`
 
-## Key Features
+## Docker
 
-- **Feature-to-Feature Comparison**: Compare any two of 86+ geological features
-- **Comprehensive Data**: Geological characteristics, constraints, foundation assessments
-- **Interactive Constraint Pills**: Visual representation with color-coded categories
-- **Professional UI**: Clean, responsive design with equal-height cards
+```bash
+docker build -t geo-matrix .
+docker run -p 8501:8501 geo-matrix
+```
+
+## Features
+
+- Compare 86+ geological features
+- Interactive constraint visualization  
+- Foundation assessments for 4 foundation types
+- Professional UI with responsive design
 
 ## Data Files
 
-### Critical: Feature Name Consistency
+**Critical**: Feature names must be identical across all CSV files.
 
-**ESSENTIAL**: Feature names must be identical across all three CSV files for constraints to load properly.
-
-### File Structure
-- **`data/geological_data.csv`** - Master reference for all feature names and foundation assessments
-- **`data/reference-geological-constraints.csv`** - Complete definitions and geological constraints
-- **`data/reference-engineering-constraints.csv`** - Engineering constraints for each feature
+- `data/geological_data.csv` - Master feature database
+- `data/reference-geological-constraints.csv` - Geological constraints & definitions
+- `data/reference-engineering-constraints.csv` - Engineering constraints
 
 ### Updating Data
+1. Update `geological_data.csv` first (authoritative source)
+2. Update both constraint files with identical names
+3. Ensure exact character matching (case-sensitive)
+4. Test constraint loading
 
-1. **geological_data.csv is the authoritative source** - update feature names here first
-2. Update the identical name in both constraint reference files
-3. Ensure exact character-by-character matching (spaces, punctuation, capitalization)
-4. Test the application to verify constraints load properly
+## Tech Stack
+- Streamlit + Pandas
+- Multi-encoding CSV support
+- Cached data loading
+- Clean, documented codebase
 
-### Common Issues
-- **Missing Constraints**: Feature names don't match exactly across files
-- **Encoding Errors**: Now handled automatically with multi-encoding support
-- **Case Sensitivity**: Feature name matching is case-sensitive
-
-## Technical Details
-
-- **Framework**: Streamlit with Pandas
-- **Encoding Support**: Automatic detection (UTF-8, Latin-1, CP1252, ISO-8859-1)
-- **Caching**: Optimized data loading with `@st.cache_data`
-- **Code Quality**: 509 lines of clean, documented code
-
-For comprehensive documentation, see `CLAUDE.md`.
+See `CLAUDE.md` for detailed documentation.
