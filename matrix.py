@@ -7,9 +7,9 @@ Users can select two geological features and compare their characteristics, cons
 and foundation assessments.
 
 Data Sources:
-- geological_data.csv: Main geological features with basic data and foundation assessments
-- reference-geological-constraints.csv: Complete definitions and geological constraints
-- reference-engineering-constraints.csv: Engineering constraints for each feature
+- data/geological_data.csv: Main geological features with basic data and foundation assessments
+- data/reference-geological-constraints.csv: Complete definitions and geological constraints
+- data/reference-engineering-constraints.csv: Engineering constraints for each feature
 """
 
 import streamlit as st
@@ -30,17 +30,17 @@ def load_geological_data():
     
     for encoding in encodings:
         try:
-            return pd.read_csv("geological_data.csv", encoding=encoding)
+            return pd.read_csv("data/geological_data.csv", encoding=encoding)
         except UnicodeDecodeError:
             continue
         except FileNotFoundError:
-            st.error("geological_data.csv not found. Please ensure the data file is in the correct location.")
+            st.error("data/geological_data.csv not found. Please ensure the data file is in the correct location.")
             return pd.DataFrame()
         except pd.errors.ParserError as e:
             st.error(f"Error parsing CSV file: {e}")
             return pd.DataFrame()
     
-    st.error("Could not decode geological_data.csv with any supported encoding.")
+    st.error("Could not decode data/geological_data.csv with any supported encoding.")
     return pd.DataFrame()
 
 @st.cache_data
@@ -54,7 +54,7 @@ def load_constraint_data():
     # Try different encodings for geological constraints
     for encoding in encodings:
         try:
-            geo_constraints = pd.read_csv("reference-geological-constraints.csv", encoding=encoding)
+            geo_constraints = pd.read_csv("data/reference-geological-constraints.csv", encoding=encoding)
             break
         except UnicodeDecodeError:
             continue
@@ -62,7 +62,7 @@ def load_constraint_data():
     # Try different encodings for engineering constraints
     for encoding in encodings:
         try:
-            eng_constraints = pd.read_csv("reference-engineering-constraints.csv", encoding=encoding)
+            eng_constraints = pd.read_csv("data/reference-engineering-constraints.csv", encoding=encoding)
             break
         except UnicodeDecodeError:
             continue

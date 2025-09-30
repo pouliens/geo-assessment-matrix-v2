@@ -26,12 +26,16 @@ The EGDI Geo-Assessment Matrix is a **simplified feature comparison tool** for o
 ### File Structure
 ```
 geo-assessment-matrix-v2/
-├── matrix.py                                  # Main Streamlit application (564 lines, cleaned & refactored)
-├── geological_data.csv                        # Main geological features database (86 features)
-├── reference-geological-constraints.csv       # Complete definitions and geological constraints
-├── reference-engineering-constraints.csv     # Engineering constraints for each feature
+├── matrix.py                                  # Main Streamlit application (522 lines, cleaned & refactored)
+├── data/                                      # Data folder containing all CSV files
+│   ├── geological_data.csv                   # Main geological features database (86 features)
+│   ├── reference-geological-constraints.csv  # Complete definitions and geological constraints
+│   └── reference-engineering-constraints.csv # Engineering constraints for each feature
+├── .venv/                                     # Virtual environment (created by uv venv)
+├── requirements.txt                           # Python dependencies
+├── .gitignore                                # Git ignore file (includes .venv, CLAUDE.md, etc.)
 ├── CLAUDE.md                                 # This comprehensive documentation
-├── README.md                                 # Basic project information
+├── README.md                                 # Setup and usage documentation
 └── T5.2a _FINAL_Geo-Assessment_Matrix_D5.4_2025_v2.xlsx  # Original Excel source
 ```
 
@@ -246,9 +250,42 @@ When modifying feature names:
 ## Deployment
 
 ### Local Development
+
+**Using uv (recommended - faster package management):**
 ```bash
+# Create virtual environment
+uv venv
+
+# Activate virtual environment
+source .venv/Scripts/activate  # Windows Git Bash/MinGW
+# or
+.venv\Scripts\activate  # Windows Command Prompt
+
+# Install dependencies
+uv pip install -r requirements.txt
+
+# Run the application
 streamlit run matrix.py
 ```
+
+**Using standard pip:**
+```bash
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment  
+source .venv/Scripts/activate  # Windows Git Bash/MinGW
+# or
+.venv\Scripts\activate  # Windows Command Prompt
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application
+streamlit run matrix.py
+```
+
+The app will open in your browser at `http://localhost:8501`
 
 ### Production Deployment
 The application can be deployed to:
@@ -262,6 +299,12 @@ The application can be deployed to:
 streamlit>=1.28.0
 pandas>=2.0.0
 ```
+
+**Installation Methods:**
+- **uv (recommended)**: `uv pip install -r requirements.txt`
+- **pip**: `pip install -r requirements.txt`
+
+**Python Version**: Tested with Python 3.13.7
 
 ## Research Attribution
 
