@@ -43,8 +43,14 @@ streamlit run matrix.py
 
 ### Docker
 ```bash
+# Local development
 docker build -t geo-matrix .
-docker run -p 8501:8501 geo-matrix
+docker run -p 8501:80 geo-matrix
+
+# Production deployment
+# Uses GitLab CI/CD pipeline with Kubernetes
+# Runs on port 80 inside container
+# Access via: http://project-name-id-branch.kube-idev.bgslcdevops.test/
 ```
 
 ### Testing

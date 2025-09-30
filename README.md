@@ -23,8 +23,13 @@ App opens at `http://localhost:8501`
 ## Docker
 
 ```bash
+# Local development
 docker build -t geo-matrix .
-docker run -p 8501:8501 geo-matrix
+docker run -p 8501:80 geo-matrix
+
+# Production deployment via GitLab CI/CD
+# Automatically deploys to Kubernetes
+# Access: http://egdi-geo-assessment-matrix-3512-main.kube-idev.bgslcdevops.test/
 ```
 
 ## Features
