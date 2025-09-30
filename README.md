@@ -34,29 +34,58 @@ docker run -p 8501:80 geo-matrix
 
 ## Features
 
-- Compare 86+ geological features
-- Interactive constraint visualization  
-- Foundation assessments for 4 foundation types
-- Professional UI with responsive design
+- **Compare 86 geological features** side-by-side
+- **Interactive constraint analysis** with descriptive constraint names
+- **Foundation assessments** for Piles, Suction Caisson, GBS, and Cables
+- **Professional responsive UI** with clean design
+- **Single GeoPackage data source** for improved performance
 
-## Data Files
+## Data Storage
 
-**Critical**: Feature names must be identical across all CSV files.
+**Single GeoPackage file**: `data/geological_data.gpkg` contains all geological data in SQLite format.
 
-- `data/geological_data.csv` - Master feature database
-- `data/reference-geological-constraints.csv` - Geological constraints & definitions
-- `data/reference-engineering-constraints.csv` - Engineering constraints
+### Data Tables
+- `geological_features` - Master feature database (86 features)
+- `geological_constraints` - Geological constraints & definitions (73 features)
+- `engineering_constraints` - Engineering constraints (73 features)
 
 ### Updating Data
-1. Update `geological_data.csv` first (authoritative source)
-2. Update both constraint files with identical names
-3. Ensure exact character matching (case-sensitive)
-4. Test constraint loading
+
+**Option 1: CSV Workflow (Recommended)**
+```bash
+# 1. Edit CSV files (maintains data editing workflow)
+# 2. Update GeoPackage from CSV files
+python update_geopackage.py
+```
+
+**Option 2: Direct Database Editing**
+```bash
+# Connect to GeoPackage with SQLite tools
+sqlite3 data/geological_data.gpkg
+```
+
+**Critical**: Feature names must be identical across all data tables.
+
+### Initial Setup
+```bash
+# Convert CSV files to GeoPackage (one-time setup)
+python create_geopackage.py
+```
 
 ## Tech Stack
-- Streamlit + Pandas
-- Multi-encoding CSV support
-- Cached data loading
-- Clean, documented codebase
+- **Streamlit** + **Pandas** + **SQLite** (built-in)
+- **GeoPackage** single-file data storage (no additional dependencies)
+- **Cached data loading** with `@st.cache_data` for optimal performance
+- **Configuration-driven** design for easy maintenance
+- **Docker-ready** with multi-stage deployment
 
-See `CLAUDE.md` for detailed documentation.
+## Data Migration (2025 September)
+✅ **Successfully migrated from CSV files to GeoPackage**
+- Improved performance with SQLite queries
+- Maintained CSV editing workflow for data updates
+- Enhanced constraint display with proper descriptive names
+- Single-file deployment simplifies Docker containers
+
+## Production Ready
+- 📊 **Data integrity** with proper constraint relationships
+- 🚀 **Docker deployment** tested and verified

@@ -75,3 +75,7 @@ CLAUDE.md
 # Temporary files
 *.tmp
 *.temp
+
+# Test databases
+*test*.gpkg
+*nonexistent*.gpkg

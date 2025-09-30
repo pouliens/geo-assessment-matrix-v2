@@ -7,13 +7,25 @@ Users can select two geological features and compare their characteristics, cons
 and foundation assessments.
 
 Data Sources:
-- data/geological_data.csv: Main geological features with basic data and foundation assessments
-- data/reference-geological-constraints.csv: Complete definitions and geological constraints
-- data/reference-engineering-constraints.csv: Engineering constraints for each feature
+- data/geological_data.gpkg: Single GeoPackage containing all geological data:
+  * geological_features: Main geological features with basic data and foundation assessments
+  * geological_constraints: Complete definitions and geological constraints
+  * engineering_constraints: Engineering constraints for each feature
 """
 
 import streamlit as st
 import pandas as pd
+import sqlite3
+
+# Configuration constants
+GEOPACKAGE_PATH = "data/geological_data.gpkg"  # Single data source file
+FOUNDATION_TYPES = ["Piles", "Suction Caisson", "GBS", "Cables"]  # Available foundation types
+FOUNDATION_COLUMN_MAP = {  # Maps foundation types to database column names
+    "Piles": "Piles_Assessment",
+    "Suction Caisson": "Suction_Caisson_Assessment", 
+    "GBS": "GBS_Assessment",
+    "Cables": "Cables_Assessment"
+}
 
 # Page configuration
 st.set_page_config(
@@ -25,49 +37,35 @@ st.set_page_config(
 # Data loading functions
 @st.cache_data
 def load_geological_data():
-    """Load main geological data from CSV file with encoding handling."""
-    encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
-    
-    for encoding in encodings:
-        try:
-            return pd.read_csv("data/geological_data.csv", encoding=encoding)
-        except UnicodeDecodeError:
-            continue
-        except FileNotFoundError:
-            st.error("data/geological_data.csv not found. Please ensure the data file is in the correct location.")
-            return pd.DataFrame()
-        except pd.errors.ParserError as e:
-            st.error(f"Error parsing CSV file: {e}")
-            return pd.DataFrame()
-    
-    st.error("Could not decode data/geological_data.csv with any supported encoding.")
-    return pd.DataFrame()
+    """Load main geological data from GeoPackage."""
+    try:
+        with sqlite3.connect(GEOPACKAGE_PATH) as conn:
+            df = pd.read_sql_query("SELECT * FROM geological_features", conn)
+        return df
+    except FileNotFoundError:
+        st.error(f"{GEOPACKAGE_PATH} not found. Please ensure the data file is in the correct location.")
+        return pd.DataFrame()
+    except sqlite3.DatabaseError as e:
+        st.error(f"Database error loading geological data: {e}")
+        return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error loading geological data from GeoPackage: {e}")
+        return pd.DataFrame()
 
 @st.cache_data
 def load_constraint_data():
-    """Load constraint data from CSV files with encoding handling."""
-    encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
-    
-    geo_constraints = pd.DataFrame()
-    eng_constraints = pd.DataFrame()
-    
-    # Try different encodings for geological constraints
-    for encoding in encodings:
-        try:
-            geo_constraints = pd.read_csv("data/reference-geological-constraints.csv", encoding=encoding)
-            break
-        except UnicodeDecodeError:
-            continue
-    
-    # Try different encodings for engineering constraints
-    for encoding in encodings:
-        try:
-            eng_constraints = pd.read_csv("data/reference-engineering-constraints.csv", encoding=encoding)
-            break
-        except UnicodeDecodeError:
-            continue
-    
-    return geo_constraints, eng_constraints
+    """Load constraint data from GeoPackage."""
+    try:
+        with sqlite3.connect(GEOPACKAGE_PATH) as conn:
+            geo_constraints = pd.read_sql_query("SELECT * FROM geological_constraints", conn)
+            eng_constraints = pd.read_sql_query("SELECT * FROM engineering_constraints", conn)
+        return geo_constraints, eng_constraints
+    except sqlite3.DatabaseError as e:
+        st.error(f"Database error loading constraint data: {e}")
+        return pd.DataFrame(), pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error loading constraint data from GeoPackage: {e}")
+        return pd.DataFrame(), pd.DataFrame()
 
 # Load all data
 geological_data = load_geological_data()
@@ -76,10 +74,8 @@ geo_constraints_data, eng_constraints_data = load_constraint_data()
 # Extract geological features list
 if not geological_data.empty:
     GEOLOGICAL_FEATURES = sorted(geological_data['Geological_Feature'].dropna().unique().tolist())
-    FOUNDATION_TYPES = ["Piles", "Suction Caisson", "GBS", "Cables"]
 else:
     GEOLOGICAL_FEATURES = ["No features available"]
-    FOUNDATION_TYPES = ["Piles", "Suction Caisson", "GBS", "Cables"]
 
 # Styling
 st.markdown("""
@@ -300,14 +296,7 @@ def get_assessment(feature_data, foundation_type):
     if feature_data is None:
         return "Data not available"
     
-    assessment_columns = {
-        "Piles": "Piles_Assessment",
-        "Suction Caisson": "Suction_Caisson_Assessment", 
-        "GBS": "GBS_Assessment",
-        "Cables": "Cables_Assessment"
-    }
-    
-    col_name = assessment_columns.get(foundation_type)
+    col_name = FOUNDATION_COLUMN_MAP.get(foundation_type)
     if col_name and col_name in feature_data:
         return feature_data[col_name] if pd.notna(feature_data[col_name]) else "No assessment available"
     return "Assessment not available"
@@ -514,9 +503,3 @@ with col2:
         else:
             st.markdown('<div class="section-container"><p>No engineering comments available</p></div>', unsafe_allow_html=True)
     
-    # Download Report button
-    st.markdown("<br>", unsafe_allow_html=True)
-    col_empty, col_download = st.columns([3, 1])
-    with col_download:
-        if st.button("Download Report", use_container_width=True):
-            st.info("Report generation feature coming soon!")
