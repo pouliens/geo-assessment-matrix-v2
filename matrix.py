@@ -422,6 +422,8 @@ st.markdown("""
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <h2>EGDI - Geo-Assessment Matrix</h2>
         <div class="nav-links">
+            <a href="https://www.data.gov.uk/dataset/c109cb6c-a32e-482b-a4e4-131d24a76f7f/the-geo-assessment-matrix-pan-european-catalogue-of-key-parameters-for-offshore-wind-farm-sitin" target="_blank">Data</a>
+            <a href="https://www.geologicalservice.eu/upload/content/1691/gseu_d5-3_pan-european-catalogue-of-key-parameters-for-offshore-windfarm-siting_v1.pdf" target="_blank">Methodology</a>
             <a href="#termsModal" style="color: white; text-decoration: none;">Terms of Use</a>
             <a href="https://www.europe-geology.eu/" style="margin-right: 2rem" target="_blank">EGDI</a>
         </div>
