@@ -328,6 +328,7 @@ st.markdown("""
 
     .terms-modal-content {
         background-color: white;
+        color: #262730;
         margin: 10% auto;
         padding: 30px 40px;
         border-radius: 8px;
@@ -345,6 +346,18 @@ st.markdown("""
         color: #fafafa;
     }
 
+    .terms-modal-content h3 {
+        color: #1e4d5b;
+    }
+
+    [data-theme="dark"] .terms-modal-content h3 {
+        color: #64b5f6;
+    }
+
+    .terms-modal-content p {
+        color: inherit;
+    }
+
     .terms-close {
         position: absolute;
         right: 20px;
@@ -359,6 +372,10 @@ st.markdown("""
     .terms-close:hover {
         color: #000;
         text-decoration: none !important;
+    }
+
+    [data-theme="dark"] .terms-close {
+        color: #999;
     }
 
     [data-theme="dark"] .terms-close:hover {
