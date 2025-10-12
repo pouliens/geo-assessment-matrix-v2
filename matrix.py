@@ -77,7 +77,7 @@ if not geological_data.empty:
 else:
     GEOLOGICAL_FEATURES = ["No features available"]
 
-# Styling
+# Styling - Theme-aware colors
 st.markdown("""
 <style>
     /* Header styles */
@@ -88,18 +88,18 @@ st.markdown("""
         margin: -1rem -1rem 2rem -1rem;
         text-align: center;
     }
-    
+
     .nav-links {
         float: right;
         margin-top: -0.5rem;
     }
-    
+
     .nav-links a {
         color: white;
         text-decoration: none;
         margin-left: 2rem;
     }
-    
+
     /* Section headers */
     .section-header {
         background-color: #1e4d5b;
@@ -109,7 +109,7 @@ st.markdown("""
         font-weight: bold;
         margin: 1rem 0 0.5rem 0;
     }
-    
+
     /* Feature headers */
     .foundation-header {
         text-align: center;
@@ -117,21 +117,20 @@ st.markdown("""
         font-weight: bold;
         padding: 1rem;
         margin: 0rem 0;
+        color: white;
     }
-    
+
     .cables-header {
         background-color: #a0916a;
-        color: white;
     }
-    
+
     .pipelines-header {
         background-color: #c4949c;
-        color: white;
     }
-    
-    /* Content containers */
+
+    /* Content containers - theme aware */
     .section-container, .constraints-card {
-        background-color: #f8f9fa;
+        background-color: rgba(128, 128, 128, 0.1);
         border-left: 3px solid #1e4d5b;
         padding: 1rem;
         margin: 0.5rem 0;
@@ -141,8 +140,8 @@ st.markdown("""
         flex-direction: column;
         justify-content: flex-start;
     }
-    
-    /* Constraint pills */
+
+    /* Constraint pills - theme aware */
     .constraint-pill {
         display: inline-block;
         padding: 0.2rem 0.6rem;
@@ -152,83 +151,98 @@ st.markdown("""
         font-weight: 500;
         text-align: center;
     }
-    
+
     .geo-constraint-pill {
-        background-color: #e3f2fd;
+        background-color: rgba(33, 150, 243, 0.15);
         border: 1px solid #2196f3;
-        color: #1976d2;
+        color: #2196f3;
     }
-    
+
     .eng-constraint-pill {
-        background-color: #fff3e0;
+        background-color: rgba(255, 152, 0, 0.15);
         border: 1px solid #ff9800;
-        color: #f57c00;
+        color: #ff9800;
     }
-    
+
+    /* Dark mode adjustments */
+    [data-theme="dark"] .geo-constraint-pill {
+        background-color: rgba(33, 150, 243, 0.25);
+        color: #64b5f6;
+    }
+
+    [data-theme="dark"] .eng-constraint-pill {
+        background-color: rgba(255, 152, 0, 0.25);
+        color: #ffb74d;
+    }
+
     .constraints-container {
         margin: 0.5rem 0;
         line-height: 1.8;
     }
-    
+
     .constraint-subheading {
         font-weight: bold;
         margin: 0.8rem 0 0.5rem 0;
         color: #1e4d5b;
         font-size: 0.95rem;
     }
-    
+
+    [data-theme="dark"] .constraint-subheading {
+        color: #64b5f6;
+    }
+
     .constraint-subheading:first-child {
         margin-top: 0;
     }
-    
+
     /* Global resets */
     p {
         margin-bottom: 0.5rem !important;
         margin-top: 0rem !important;
     }
-    
+
     .stSelectbox, .stSelectbox > label, .stSelectbox > div {
         margin-top: 0rem !important;
         margin-bottom: 0rem !important;
         cursor: pointer !important;
     }
-    
+
     .stSelectbox > div > div {
         cursor: pointer !important;
     }
-    
+
     .stSelectbox select {
         cursor: pointer !important;
     }
-    
+
     .stSelectbox [data-baseweb="select"] {
         cursor: pointer !important;
     }
-    
+
     .stButton > button {
         text-align: center !important;
     }
-    
+
     .stButton > button > p, .stButton button p, .stButton p {
         margin-bottom: 0 !important;
         margin-top: 0 !important;
     }
-    
+
     .stColumn .stButton {
         margin-top: 1rem !important;
     }
-    
-    /* Tooltip system */
+
+    /* Tooltip system - theme aware */
     .tooltip {
         position: relative;
         display: inline-block;
         cursor: help;
     }
-    
+
     .tooltip .tooltiptext {
         visibility: hidden;
         width: 300px;
-        background-color: #555;
+        background-color: rgba(64, 64, 64, 0.95);
         color: #fff;
         text-align: left;
         border-radius: 6px;
@@ -243,12 +257,12 @@ st.markdown("""
         font-size: 12px;
         line-height: 1.4;
     }
-    
+
     .tooltip:hover .tooltiptext {
         visibility: visible;
         opacity: 1;
     }
-    
+
     .tooltip .tooltiptext::after {
         content: "";
         position: absolute;
@@ -257,25 +271,25 @@ st.markdown("""
         margin-left: -5px;
         border-width: 5px;
         border-style: solid;
-        border-color: #555 transparent transparent transparent;
+        border-color: rgba(64, 64, 64, 0.95) transparent transparent transparent;
     }
-    
-    /* CSS-only Terms Modal */
+
+    /* Terms Modal */
     .terms-modal {
-        display: none !important;
-        position: fixed !important;
-        z-index: 1000 !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        background-color: rgba(0,0,0,0.4) !important;
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.4);
     }
-    
+
     .terms-modal:target {
-        display: block !important;
+        display: block;
     }
-    
+
     .terms-modal-content {
         background-color: white;
         margin: 10% auto;
@@ -289,7 +303,12 @@ st.markdown("""
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         line-height: 1.6;
     }
-    
+
+    [data-theme="dark"] .terms-modal-content {
+        background-color: #262730;
+        color: #fafafa;
+    }
+
     .terms-close {
         position: absolute;
         right: 20px;
@@ -300,12 +319,17 @@ st.markdown("""
         color: #666;
         cursor: pointer;
     }
-    
+
     .terms-close:hover {
         color: #000;
         text-decoration: none !important;
     }
-    
+
+    [data-theme="dark"] .terms-close:hover {
+        color: #fafafa;
+        text-decoration: none !important;
+    }
+
     .terms-modal-background {
         position: absolute;
         top: 0;
@@ -321,7 +345,6 @@ st.markdown("""
 def create_tooltip(text, tooltip_content):
     """Create a tooltip with hover functionality."""
     return f'<span class="tooltip">{text}<span class="tooltiptext">{tooltip_content}</span></span>'
-
 
 def get_complete_feature_data(feature_name):
     """Get complete feature data combining main data with enhanced definitions."""
@@ -406,7 +429,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Terms of Use Modal - separate component to prevent parsing issues
+# Terms of Use Modal
 st.markdown("""
 <div id="termsModal" class="terms-modal">
     <a href="#" class="terms-modal-background"></a>
@@ -497,14 +520,14 @@ with col2:
             geo_pills = ' '.join([f'<span class="constraint-pill geo-constraint-pill">{c}</span>' for c in geo_constraints_1])
             constraints_content += f'<div class="constraints-container">{geo_pills}</div>'
         else:
-            constraints_content += '<p style="font-style: italic; color: #6c757d;">No geological constraints identified</p>'
-        
+            constraints_content += '<p style="font-style: italic; opacity: 0.6;">No geological constraints identified</p>'
+
         constraints_content += '<div class="constraint-subheading">Engineering Constraints</div>'
         if eng_constraints_1:
             eng_pills = ' '.join([f'<span class="constraint-pill eng-constraint-pill">{c}</span>' for c in eng_constraints_1])
             constraints_content += f'<div class="constraints-container">{eng_pills}</div>'
         else:
-            constraints_content += '<p style="font-style: italic; color: #6c757d;">No engineering constraints identified</p>'
+            constraints_content += '<p style="font-style: italic; opacity: 0.6;">No engineering constraints identified</p>'
         
         st.markdown(f'<div class="constraints-card">{constraints_content}</div>', unsafe_allow_html=True)
     
@@ -517,14 +540,14 @@ with col2:
             geo_pills = ' '.join([f'<span class="constraint-pill geo-constraint-pill">{c}</span>' for c in geo_constraints_2])
             constraints_content += f'<div class="constraints-container">{geo_pills}</div>'
         else:
-            constraints_content += '<p style="font-style: italic; color: #6c757d;">No geological constraints identified</p>'
-        
+            constraints_content += '<p style="font-style: italic; opacity: 0.6;">No geological constraints identified</p>'
+
         constraints_content += '<div class="constraint-subheading">Engineering Constraints</div>'
         if eng_constraints_2:
             eng_pills = ' '.join([f'<span class="constraint-pill eng-constraint-pill">{c}</span>' for c in eng_constraints_2])
             constraints_content += f'<div class="constraints-container">{eng_pills}</div>'
         else:
-            constraints_content += '<p style="font-style: italic; color: #6c757d;">No engineering constraints identified</p>'
+            constraints_content += '<p style="font-style: italic; opacity: 0.6;">No engineering constraints identified</p>'
         
         st.markdown(f'<div class="constraints-card">{constraints_content}</div>', unsafe_allow_html=True)
     
