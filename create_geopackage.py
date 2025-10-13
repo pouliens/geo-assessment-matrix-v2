@@ -24,7 +24,7 @@ CSV_FILES = {
     'geological_constraints': f'{DATA_DIR}/reference-geological-constraints.csv', 
     'engineering_constraints': f'{DATA_DIR}/reference-engineering-constraints.csv'
 }
-CONSTRAINT_HEADER_ROWS = 14  # Number of header rows to skip in constraint CSV files
+CONSTRAINT_HEADER_ROWS = 0  # Constraint CSVs now have simple structure: header in row 1, data from row 2
 
 def try_read_csv_with_encodings(file_path, encodings=['utf-8', 'latin-1', 'cp1252', 'iso-8859-1'], skiprows=None, nrows=None, header='infer'):
     """Try to read CSV with multiple encodings."""
@@ -63,14 +63,8 @@ def create_geopackage():
                 print(f"Converting {file_path} to {table_name} table...")
                 
                 # Read CSV with encoding handling
-                if 'constraints' in table_name:
-                    # Constraint files need special handling: get column names from header, data from row 14+
-                    header_df = try_read_csv_with_encodings(file_path, nrows=1)  # Get column names
-                    data_df = try_read_csv_with_encodings(file_path, skiprows=CONSTRAINT_HEADER_ROWS, header=None)  # Get data
-                    data_df.columns = header_df.columns  # Apply proper column names
-                    df = data_df
-                else:
-                    df = try_read_csv_with_encodings(file_path)
+                # All CSV files now have simple structure: header in row 1, data from row 2
+                df = try_read_csv_with_encodings(file_path)
                 
                 # Clean column names (remove BOM, spaces, etc.)
                 df.columns = df.columns.str.strip().str.replace('\ufeff', '')

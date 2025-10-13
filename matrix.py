@@ -16,6 +16,7 @@ Data Sources:
 import streamlit as st
 import pandas as pd
 import sqlite3
+from typing import Optional, List, Tuple
 
 # Configuration constants
 GEOPACKAGE_PATH = "data/geological_data.gpkg"  # Single data source file
@@ -36,11 +37,22 @@ st.set_page_config(
 
 # Data loading functions
 @st.cache_data
-def load_geological_data():
-    """Load main geological data from GeoPackage."""
+def load_geological_data() -> pd.DataFrame:
+    """Load main geological data from GeoPackage.
+
+    Returns:
+        DataFrame containing geological features with all attributes
+    """
     try:
         with sqlite3.connect(GEOPACKAGE_PATH) as conn:
-            df = pd.read_sql_query("SELECT * FROM geological_features", conn)
+            # Explicitly quote "References" as it's a SQL reserved keyword
+            df = pd.read_sql_query('''
+                SELECT
+                    Geological_Feature, Setting, Constraint_Type, Definition,
+                    Piles_Assessment, Suction_Caisson_Assessment, GBS_Assessment, Cables_Assessment,
+                    Dominant_Constraint, Comments, "References"
+                FROM geological_features
+            ''', conn)
         return df
     except FileNotFoundError:
         st.error(f"{GEOPACKAGE_PATH} not found. Please ensure the data file is in the correct location.")
@@ -53,8 +65,12 @@ def load_geological_data():
         return pd.DataFrame()
 
 @st.cache_data
-def load_constraint_data():
-    """Load constraint data from GeoPackage."""
+def load_constraint_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Load constraint data from GeoPackage.
+
+    Returns:
+        Tuple of (geological_constraints, engineering_constraints) DataFrames
+    """
     try:
         with sqlite3.connect(GEOPACKAGE_PATH) as conn:
             geo_constraints = pd.read_sql_query("SELECT * FROM geological_constraints", conn)
@@ -231,6 +247,62 @@ st.markdown("""
         margin-top: 0;
     }
 
+    /* References card styling - subtle and less prominent */
+    .references-card {
+        background-color: rgba(128, 128, 128, 0.05);
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border-radius: 0 5px 5px 0;
+        border-left: 3px solid rgba(128, 128, 128, 0.3);
+        font-size: 0.85rem;
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+
+    [data-theme="dark"] .references-card {
+        background-color: rgba(128, 128, 128, 0.08);
+    }
+
+    /* Color-coded left borders for reference cards - match other cards */
+    .references-card:has(.feature-label-1) {
+        border-left: 3px solid #a0916a;
+    }
+
+    .references-card:has(.feature-label-2) {
+        border-left: 3px solid #c4949c;
+    }
+
+    .references-card .feature-label {
+        opacity: 0.8;
+    }
+
+    .references-card p {
+        color: rgba(100, 100, 100, 1);
+        margin: 0.25rem 0 !important;
+        font-size: 0.85rem;
+    }
+
+    [data-theme="dark"] .references-card p {
+        color: rgba(180, 180, 180, 0.85);
+    }
+
+    /* Compact references subheading */
+    .references-subheading {
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: rgba(128, 128, 128, 0.75);
+        margin-top: 0 !important;
+        margin-bottom: 0.4rem !important;
+    }
+
+    [data-theme="dark"] .references-subheading {
+        color: rgba(180, 180, 180, 0.6);
+    }
+
     /* Global resets */
     p {
         margin-bottom: 0.5rem !important;
@@ -395,36 +467,60 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Helper functions
-def create_tooltip(text, tooltip_content):
-    """Create a tooltip with hover functionality."""
+def create_tooltip(text: str, tooltip_content: str) -> str:
+    """Create a tooltip with hover functionality.
+
+    Args:
+        text: The visible text to display
+        tooltip_content: The content to show on hover
+
+    Returns:
+        HTML string with tooltip markup
+    """
     return f'<span class="tooltip">{text}<span class="tooltiptext">{tooltip_content}</span></span>'
 
-def get_complete_feature_data(feature_name):
-    """Get complete feature data combining main data with enhanced definitions."""
+def format_references(references_text) -> Optional[str]:
+    """Format references for display.
+
+    Args:
+        references_text: References text from the References column
+
+    Returns:
+        Formatted references string, or None if no references
+    """
+    if pd.isna(references_text) or not str(references_text).strip():
+        return None
+    return str(references_text).strip()
+
+def get_complete_feature_data(feature_name: str) -> Optional[pd.Series]:
+    """Get complete feature data for a geological feature.
+
+    Args:
+        feature_name: Name of the geological feature
+
+    Returns:
+        Series with feature data, or None if not found
+    """
     if geological_data.empty or feature_name == "No features match criteria":
         return None
 
-    # Get main feature data
+    # Get feature data
     feature_data = geological_data[geological_data['Geological_Feature'] == feature_name]
     if feature_data.empty:
         return None
 
-    # Convert to dictionary to preserve all columns
-    complete_data = feature_data.iloc[0].to_dict()
+    return feature_data.iloc[0]
 
-    # Enhance with complete definition from constraints file
-    if not geo_constraints_data.empty:
-        first_col = geo_constraints_data.columns[0]
-        constraint_row = geo_constraints_data[geo_constraints_data[first_col] == feature_name]
-        if not constraint_row.empty and 'Definition ' in geo_constraints_data.columns:
-            definition = constraint_row['Definition '].iloc[0]
-            if pd.notna(definition) and str(definition).strip():
-                complete_data['Definition'] = str(definition).strip()
+def get_assessment(feature_data: Optional[pd.Series], foundation_type: str) -> str:
+    """Get foundation constraint assessment for a specific foundation type.
 
-    return pd.Series(complete_data)
+    Args:
+        feature_data: Series containing feature data
+        foundation_type: Type of foundation (Piles, Suction Caisson, GBS, or Cables)
 
-def get_assessment(feature_data, foundation_type):
-    """Get foundation constraint assessment."""
+    Returns:
+        Assessment string
+    """
     if feature_data is None:
         return "Data not available"
 
@@ -433,41 +529,73 @@ def get_assessment(feature_data, foundation_type):
         return feature_data[col_name] if pd.notna(feature_data[col_name]) else "No assessment available"
     return "Assessment not available"
 
-def get_constraints_for_feature(feature_name, constraints_data):
-    """Extract constraints marked with 'x' for a geological feature."""
+def get_constraints_for_feature(feature_name: str, constraints_data: pd.DataFrame) -> List[str]:
+    """Extract constraints marked with 'x' for a geological feature.
+
+    Args:
+        feature_name: Name of the geological feature
+        constraints_data: DataFrame containing constraint information
+
+    Returns:
+        List of constraint names that apply to this feature
+    """
     if constraints_data.empty:
         return []
 
-    # Find feature row using first column - try exact match first
+    # Find feature row using first column (exact match required)
     first_col = constraints_data.columns[0]
     feature_row = constraints_data[constraints_data[first_col] == feature_name]
-
-    # If exact match fails, try with variations (e.g., "Back barrier" vs "Back barrier (flats and lagoons)")
-    if feature_row.empty:
-        # Try finding rows that start with the feature name
-        feature_row = constraints_data[constraints_data[first_col].str.startswith(feature_name, na=False)]
-
-        # If still empty, try the reverse - feature names that contain our search term
-        if feature_row.empty:
-            feature_row = constraints_data[constraints_data[first_col].str.contains(feature_name, case=False, na=False)]
 
     if feature_row.empty:
         return []
 
-    # Extract constraints from columns 4+ (metadata in first 4)
+    # Extract constraints from all columns except the first (which is the feature name)
     constraints = []
-    constraint_columns = constraints_data.columns[4:]
+    constraint_columns = constraints_data.columns[1:]  # All columns except first are constraints
 
     for col in constraint_columns:
         try:
-            if not pd.isna(feature_row[col].iloc[0]) and str(feature_row[col].iloc[0]).strip().lower() == 'x':
+            cell_value = feature_row[col].iloc[0]
+            if not pd.isna(cell_value) and str(cell_value).strip().lower() == 'x':
                 clean_name = col.strip()
+                # Exclude meta-columns that aren't actual constraints
                 if clean_name and clean_name not in ['Unknown', 'Potentially unsuitable', 'Requires individual WTG siting investigation']:
                     constraints.append(clean_name)
         except (IndexError, KeyError):
             continue
 
     return constraints
+
+def render_geological_characteristics_card(feature_name: str, feature_data: Optional[pd.Series], feature_label_class: str) -> str:
+    """Render a geological characteristics card with definition.
+
+    Args:
+        feature_name: Name of the geological feature
+        feature_data: Series containing feature data
+        feature_label_class: CSS class for feature label (e.g., 'feature-label-1')
+
+    Returns:
+        HTML string for the card
+    """
+    if feature_data is None:
+        return f'''<div class="section-container">
+            <div class="feature-label {feature_label_class}">{feature_name}</div>
+            <p><strong>No data available</strong></p>
+        </div>'''
+
+    # Get definition
+    definition_text = feature_data['Definition'] if pd.notna(feature_data['Definition']) else "No definition available"
+
+    # Build HTML content
+    content = f'''<div class="section-container">
+        <div class="feature-label {feature_label_class}">{feature_name}</div>
+        <p><strong>Setting:</strong> {feature_data['Setting']}</p>
+        <p><strong>Constraint Type:</strong> {feature_data['Constraint_Type']}</p>
+        <p><strong>Dominant Constraint:</strong> {feature_data['Dominant_Constraint']}</p>
+        <p><strong>Definition:</strong> {definition_text}</p>
+    </div>'''
+
+    return content
 
 # Main application layout
 st.markdown("""
@@ -533,34 +661,12 @@ with col2:
     col_c1, col_c2 = st.columns(2)
 
     with col_c1:
-        if feature_data_1 is not None:
-            definition_text = feature_data_1['Definition'] if pd.notna(feature_data_1['Definition']) else "No definition available"
-            st.markdown(f"""
-            <div class="section-container">
-                <div class="feature-label feature-label-1">{geological_feature_1}</div>
-                <p><strong>Setting:</strong> {feature_data_1['Setting']}</p>
-                <p><strong>Constraint Type:</strong> {feature_data_1['Constraint_Type']}</p>
-                <p><strong>Dominant Constraint:</strong> {feature_data_1['Dominant_Constraint']}</p>
-                <p><strong>Definition:</strong> {definition_text}</p>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="section-container"><div class="feature-label feature-label-1">{geological_feature_1}</div><p><strong>No data available for Feature 1</strong></p></div>', unsafe_allow_html=True)
+        card_html = render_geological_characteristics_card(geological_feature_1, feature_data_1, 'feature-label-1')
+        st.markdown(card_html, unsafe_allow_html=True)
 
     with col_c2:
-        if feature_data_2 is not None:
-            definition_text = feature_data_2['Definition'] if pd.notna(feature_data_2['Definition']) else "No definition available"
-            st.markdown(f"""
-            <div class="section-container">
-                <div class="feature-label feature-label-2">{geological_feature_2}</div>
-                <p><strong>Setting:</strong> {feature_data_2['Setting']}</p>
-                <p><strong>Constraint Type:</strong> {feature_data_2['Constraint_Type']}</p>
-                <p><strong>Dominant Constraint:</strong> {feature_data_2['Dominant_Constraint']}</p>
-                <p><strong>Definition:</strong> {definition_text}</p>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="section-container"><div class="feature-label feature-label-2">{geological_feature_2}</div><p><strong>No data available for Feature 2</strong></p></div>', unsafe_allow_html=True)
+        card_html = render_geological_characteristics_card(geological_feature_2, feature_data_2, 'feature-label-2')
+        st.markdown(card_html, unsafe_allow_html=True)
 
     # Constraints Analysis
     st.markdown(f'<div class="section-header">{create_tooltip("Constraints Analysis", "Geological and engineering constraints for both features")}</div>',
@@ -655,3 +761,29 @@ with col2:
             st.markdown(f'<div class="section-container"><div class="feature-label feature-label-2">{geological_feature_2}</div><p>{comments_text}</p></div>', unsafe_allow_html=True)
         else:
             st.markdown(f'<div class="section-container"><div class="feature-label feature-label-2">{geological_feature_2}</div><p>No engineering comments available</p></div>', unsafe_allow_html=True)
+
+    # References Section
+    st.markdown(f'<div class="section-header">{create_tooltip("References", "Academic references and citations for both features")}</div>',
+                unsafe_allow_html=True)
+
+    col_r1, col_r2 = st.columns(2)
+
+    with col_r1:
+        if feature_data_1 is not None:
+            references_text = format_references(feature_data_1.get('References'))
+            if references_text:
+                st.markdown(f'<div class="references-card"><div class="feature-label feature-label-1">{geological_feature_1}</div><p>{references_text}</p></div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="references-card"><div class="feature-label feature-label-1">{geological_feature_1}</div><p style="font-style: italic; opacity: 0.5;">No references available</p></div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="references-card"><div class="feature-label feature-label-1">{geological_feature_1}</div><p style="font-style: italic; opacity: 0.5;">No references available</p></div>', unsafe_allow_html=True)
+
+    with col_r2:
+        if feature_data_2 is not None:
+            references_text = format_references(feature_data_2.get('References'))
+            if references_text:
+                st.markdown(f'<div class="references-card"><div class="feature-label feature-label-2">{geological_feature_2}</div><p>{references_text}</p></div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="references-card"><div class="feature-label feature-label-2">{geological_feature_2}</div><p style="font-style: italic; opacity: 0.5;">No references available</p></div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="references-card"><div class="feature-label feature-label-2">{geological_feature_2}</div><p style="font-style: italic; opacity: 0.5;">No references available</p></div>', unsafe_allow_html=True)

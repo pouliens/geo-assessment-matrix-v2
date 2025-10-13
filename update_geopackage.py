@@ -23,7 +23,7 @@ CSV_FILES = {
     'geological_constraints': f'{DATA_DIR}/reference-geological-constraints.csv', 
     'engineering_constraints': f'{DATA_DIR}/reference-engineering-constraints.csv'
 }
-CONSTRAINT_HEADER_ROWS = 14  # Number of header rows to skip in constraint CSV files
+CONSTRAINT_HEADER_ROWS = 0  # Constraint CSVs now have simple structure: header in row 1, data from row 2
 
 def update_geopackage_from_csvs():
     """Update existing GeoPackage with latest CSV data."""
@@ -54,14 +54,8 @@ def update_geopackage_from_csvs():
                 
                 for encoding in encodings:
                     try:
-                        if 'constraints' in table_name:
-                            # Constraint files need special handling: get column names from header, data from row 14+
-                            header_df = pd.read_csv(file_path, encoding=encoding, nrows=1)  # Get column names
-                            data_df = pd.read_csv(file_path, encoding=encoding, skiprows=CONSTRAINT_HEADER_ROWS, header=None)  # Get data
-                            data_df.columns = header_df.columns  # Apply proper column names
-                            df = data_df
-                        else:
-                            df = pd.read_csv(file_path, encoding=encoding)
+                        # All CSV files now have simple structure: header in row 1, data from row 2
+                        df = pd.read_csv(file_path, encoding=encoding)
                         break
                     except UnicodeDecodeError:
                         continue
